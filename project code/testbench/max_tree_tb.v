@@ -24,7 +24,7 @@ module max_tree_tb();
         clock_i = 0                                                                             ;
         reset_n_i = 0                                                                           ;
         start_i = 0                                                                             ;
-        data_i = 0                                                                              ;
+        data_i = 5                                                                              ;
         
         #30
         reset_n_i = 1                                                                           ;
@@ -32,6 +32,9 @@ module max_tree_tb();
         start_i = 1                                                                             ;
         
     end
-    always #10 data_i = data_i + 1                                                              ;
+    always @(posedge clock_i)
+    begin
+        data_i <= $random%20 - 10                                                               ;
+    end
     always #5 clock_i = ~clock_i                                                                ;
 endmodule
