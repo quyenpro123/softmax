@@ -21,10 +21,13 @@ module exp_block
     reg                                 exp_valid_o_temp                                                        ;
     reg             [data_size - 1:0]   exp_o_temp                                                              ;
     reg                                 next_exp_valid_o_temp                                                   ;
+    wire                                next_exp_valid_o_temp_wire                                              ;
     reg             [data_size - 1:0]   next_exp_o_temp                                                         ;
+    wire            [data_size - 1:0]   next_exp_o_temp_wire                                                    ;
 
     reg             [data_size - 1:0]   input_data                                                              ;
     reg             [data_size - 1:0]   fxp_data                                                                ;
+    wire            [data_size - 1:0]   fxp_data_wire                                                           ;
     reg             [data_size - 1:0]   next_fxp_data                                                           ;
 
 
@@ -34,15 +37,13 @@ module exp_block
     localparam                          LUT = 2                                                                 ;
     
     reg                                 FP_2_FXP_done                                                           ;
+    wire                                FP_2_FXP_done_wire                                                      ;
     reg                                 input_valid                                                             ;
     
     reg             [1:0]               exp_current_state                                                       ;
     reg             [1:0]               exp_next_state                                                          ;
     reg             [7:0]               counter_data_compute_output                                             ;
 
-
-    //----------------------------------------LUT---------------------------------------------------------------
-    reg             [data_size - 1:0]   LUT_EXP         [30:0]                                                  ;
 
     //-------------------------------------------assign output--------------------------------------------------
     assign exp_valid_o = exp_valid_o_temp                                                                       ;
@@ -78,7 +79,7 @@ module exp_block
         else
             if (input_valid)
                 input_valid <= 0                                                                                ;
-            if (data_valid_i && ~input_valid)
+            if (counter_data_input_stream > counter_data_compute_output && ~input_valid)
                 input_valid <= 1                                                                                ;
     end
     
@@ -93,7 +94,7 @@ module exp_block
         end
         else
         begin
-            fxp_data <= next_fxp_data                                                                           ;
+            fxp_data <= {12'b0, next_fxp_data[26:23], next_fxp_data[22:7]}                                      ;
             exp_o_temp <= next_exp_o_temp                                                                       ;
             exp_valid_o_temp <= next_exp_valid_o_temp                                                           ;
         end
@@ -165,10 +166,9 @@ module exp_block
             LUT:
             begin
                 next_fxp_data = fxp_data                                                                        ;
-                for (i = 0 ; i < 31 ; i = i + 1)
-                    next_exp_o_temp = next_exp_o_temp * fxp_data[i] ? LUT_EXP[i] : 1                            ;
-                FP_2_FXP_done = 0                                                                               ;
-                next_exp_valid_o_temp = 1                                                                       ;
+                next_exp_valid_o_temp = next_exp_valid_o_temp_wire                                              ;
+                next_exp_o_temp = next_exp_o_temp_wire                                                          ;
+                FP_2_FXP_done = 1                                                                               ;
                 input_data = 0                                                                                  ;
             end
                 
@@ -189,17 +189,23 @@ module exp_block
         if (~reset_n_i)
             counter_data_compute_output <= 0                                                                    ;
         else
-            if (FP_2_FXP_done && counter_data_compute_output < number_of_data)
+            if (exp_current_state == LUT && counter_data_compute_output < number_of_data)
                 counter_data_compute_output = counter_data_compute_output + 1                                   ;
     end
     
     //----------------------------------------------------------------------------------------------------------
     
-    //---------------------------------------------Initiate LUT-------------------------------------------------
-    always @(posedge clock_i)
-    begin
-        if (~reset_n_i)
-            for(i = 0 ; i < 31 ; i = i + 1)
-                LUT_EXP[i] <= 1                                                                                 ;
-    end
+    //--------------------------------------------LUT EXP-------------------------------------------------------
+    assign fxp_data_wire = next_fxp_data                                                                        ;
+    assign FP_2_FXP_done_wire = FP_2_FXP_done                                                                   ;
+    
+    lut_exp lut(
+                    .clock_i(clock_i)                                                                           ,
+                    .reset_n_i(reset_n_i)                                                                       ,
+                    .data_i(fxp_data_wire)                                                                      ,
+                    .FP_2_FXP_done_i(FP_2_FXP_done_wire)                                                        ,
+                    
+                    .output_valid_o(next_exp_valid_o_temp_wire)                                                 , 
+                    .data_o(next_exp_o_temp_wire) 
+                );
 endmodule

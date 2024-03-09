@@ -1,0 +1,33 @@
+
+module lut_tb();
+    reg                                 clock_i                                                                 ;
+    reg                                 reset_n_i                                                               ;
+    reg                 [31:0]          data_i                                                                  ;
+    reg                                 done_i                                                                  ;
+    
+    wire                                done_o                                                                  ;
+    wire                [31:0]          data_o                                                                  ;
+    
+    lut_exp lut(
+        .clock_i(clock_i)                                                                                       ,
+        .reset_n_i(reset_n_i)                                                                                   ,
+        .data_i(a_i)                                                                                            ,
+        .FP_2_FXP_done_i(done_i)                                                                                ,
+        .output_valid_o(done_o)                                                                                 ,
+        .data_o(data_o)
+    );
+    
+    initial 
+    begin
+        clock_i = 0                                                                                             ;
+        reset_n_i = 0                                                                                           ;
+        data_i = 0                                                                                              ;
+        #20
+        data_i = 32'b0000_0000_0000_1010_0101_0101_0000_1010                                                    ;
+        done_i = 1                                                                                              ;
+        #10
+        done_i = 0                                                                                              ;
+    end
+    
+    always #5 clock_i = ~clock_i                                                                                ;
+endmodule
