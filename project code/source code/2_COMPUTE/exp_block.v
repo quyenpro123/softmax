@@ -9,6 +9,7 @@ module exp_block
     input           [data_size - 1:0]   data_i                                                                  ,
     input                               data_valid_i                                                            ,
 
+    output                              exp_done_o                                                              ,
     output                              exp_valid_o                                                             ,
     output          [data_size - 1:0]   exp_o
 );
@@ -24,6 +25,7 @@ module exp_block
     wire                                next_exp_valid_o_temp_wire                                              ;
     reg             [data_size - 1:0]   next_exp_o_temp                                                         ;
     wire            [data_size - 1:0]   next_exp_o_temp_wire                                                    ;
+    reg                                 exp_done_o_temp                                                         ;
 
     reg             [data_size - 1:0]   input_data                                                              ;
     reg             [data_size - 1:0]   fxp_data                                                                ;
@@ -48,7 +50,7 @@ module exp_block
     //-------------------------------------------assign output--------------------------------------------------
     assign exp_valid_o = exp_valid_o_temp                                                                       ;
     assign exp_o = exp_o_temp                                                                                   ;
-
+    assign exp_done_o = exp_done_o_temp                                                                         ;
 
     //--------------------------------------------input stream--------------------------------------------------
     always @(posedge clock_i) 
@@ -98,6 +100,15 @@ module exp_block
             exp_o_temp <= next_exp_o_temp                                                                       ;
             exp_valid_o_temp <= next_exp_valid_o_temp                                                           ;
         end
+    end
+    
+    always @(posedge clock_i)
+    begin
+        if (~reset_n_i)
+            exp_done_o_temp <= 0                                                                                ;
+        else
+            if (counter_data_compute_output == 10)
+                exp_done_o_temp <= 1                                                                            ;
     end
     //---------------------------------------------FSM----------------------------------------------------------
     
