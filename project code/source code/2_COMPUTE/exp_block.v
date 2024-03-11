@@ -6,12 +6,12 @@ module exp_block
 (
     input                               clock_i                                                                 ,
     input                               reset_n_i                                                               ,
-    input           [data_size - 1:0]   data_i                                                                  ,
-    input                               data_valid_i                                                            ,
+    input           [data_size - 1:0]   exp_data_i                                                              ,
+    input                               exp_data_valid_i                                                        ,
 
     output                              exp_done_o                                                              ,
-    output                              exp_valid_o                                                             ,
-    output          [data_size - 1:0]   exp_o
+    output                              exp_data_valid_o                                                        ,
+    output          [data_size - 1:0]   exp_data_o
 );
     //----------------------------------------internal variable-------------------------------------------------
     integer                             i                                                                       ;
@@ -48,8 +48,8 @@ module exp_block
 
 
     //-------------------------------------------assign output--------------------------------------------------
-    assign exp_valid_o = exp_valid_o_temp                                                                       ;
-    assign exp_o = exp_o_temp                                                                                   ;
+    assign exp_data_valid_o = exp_valid_o_temp                                                                  ;
+    assign exp_data_o = exp_o_temp                                                                              ;
     assign exp_done_o = exp_done_o_temp                                                                         ;
 
     //--------------------------------------------input stream--------------------------------------------------
@@ -59,8 +59,8 @@ module exp_block
             for(i = 0 ; i < number_of_data ; i = i + 1)
                 exp_buffer[i] <= 0                                                                              ;
         else
-            if (data_valid_i)
-                exp_buffer[counter_data_input_stream] <= data_i                                                 ;
+            if (exp_data_valid_i)
+                exp_buffer[counter_data_input_stream] <= exp_data_i                                             ;
     end
     
     //handle counter data input stream
@@ -69,7 +69,7 @@ module exp_block
         if(~reset_n_i)
             counter_data_input_stream <= 0                                                                      ;
         else
-            if (counter_data_input_stream < number_of_data && data_valid_i)
+            if (counter_data_input_stream < number_of_data && exp_data_valid_i)
                 counter_data_input_stream = counter_data_input_stream + 1                                       ;
     end
 
@@ -213,10 +213,10 @@ module exp_block
     lut_exp lut(
                     .clock_i(clock_i)                                                                           ,
                     .reset_n_i(reset_n_i)                                                                       ,
-                    .data_i(fxp_data_wire)                                                                      ,
+                    .lut_data_i(fxp_data_wire)                                                                  ,
                     .FP_2_FXP_done_i(FP_2_FXP_done_wire)                                                        ,
                     
-                    .output_valid_o(next_exp_valid_o_temp_wire)                                                 , 
-                    .data_o(next_exp_o_temp_wire) 
+                    .lut_data_valid_o(next_exp_valid_o_temp_wire)                                               , 
+                    .lut_data_o(next_exp_o_temp_wire) 
                 );
 endmodule

@@ -7,7 +7,7 @@ module downscale_block
     input                               clock_i                                                                 , //clock source
     input                               reset_n_i                                                               , //reset active low
     input                               start_i                                                                 , //start signal
-    input           [data_size - 1:0]   data_i                                                                  , //data in: Z = {Z1, Z2, Z3, ... , Zn}
+    input           [data_size - 1:0]   downscale_data_i                                                        , //data in: Z = {Z1, Z2, Z3, ... , Zn}
 
     output reg                          sub_result_valid_o                                                      ,         
     output          [data_size - 1:0]   sub_result_o                                                              //Zi - Zmax
@@ -65,7 +65,7 @@ module downscale_block
                 input_buffer[counter_for_loop] <= 0                                                             ;
         else    
             if (start_i && counter_data_for_max >= 0 && max_done == 0)
-                input_buffer[counter_data_for_max] <= data_i                                                    ;
+                input_buffer[counter_data_for_max] <= downscale_data_i                                          ;
     end   
     //----------------------------------------------------MAX DETECT--------------------------------------------
     //handle data max

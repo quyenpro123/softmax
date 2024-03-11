@@ -25,7 +25,7 @@ module top_block
         .clock_i(clock_i)                                                                                       ,
         .reset_n_i(reset_n_i)                                                                                   ,
         .start_i(start_i)                                                                                       ,
-        .data_i(data_i)                                                                                         ,
+        .downscale_data_i(data_i)                                                                               ,
 
         //output
         .sub_result_valid_o(sub_result_valid)                                                                   ,
@@ -36,20 +36,20 @@ module top_block
         //input
         .clock_i(clock_i)                                                                                       ,
         .reset_n_i(reset_n_i)                                                                                   ,
-        .data_i(sub_result)                                                                                     ,
-        .data_valid_i(sub_result_valid)                                                                         ,
+        .exp_data_i(sub_result)                                                                                 ,
+        .exp_data_valid_i(sub_result_valid)                                                                     ,
 
         //output
         .exp_done_o(exp_done_signal_o)                                                                          ,
-        .exp_valid_o(exp_data_valid_o)                                                                          ,
-        .exp_o(data_exp_o)
+        .exp_data_valid_o(exp_data_valid_o)                                                                     ,
+        .exp_data_o(data_exp_o)
     );
     
     adder_block adder(
         .clock_i(clock_i)                                                                                       ,
         .reset_n_i(reset_n_i)                                                                                   ,
-        .exp_i(data_exp_o)                                                                                      ,
-        .data_valid_i(exp_data_valid_o)                                                                         ,
+        .adder_data_i(data_exp_o)                                                                               ,
+        .adder_data_valid_i(exp_data_valid_o)                                                                   ,
         .exp_done_i(exp_done_signal_o)                                                                          ,
         
         .adder_o(adder_o)                                                                                       ,

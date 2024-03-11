@@ -6,8 +6,8 @@ module adder_block
 (
     input                               clock_i                                                                 ,
     input                               reset_n_i                                                               ,
-    input           [data_size - 1:0]   exp_i                                                                   ,
-    input                               data_valid_i                                                            ,
+    input           [data_size - 1:0]   adder_data_i                                                            ,
+    input                               adder_data_valid_i                                                      ,
     input                               exp_done_i                                                              ,
     
     output          [data_size - 1:0]   adder_o                                                                 ,
@@ -26,8 +26,8 @@ module adder_block
         end
         else
         begin
-            if (data_valid_i && ~exp_done_i)
-                adder_o_temp = adder_o_temp + exp_i                                                             ;
+            if (adder_data_valid_i && ~exp_done_i)
+                adder_o_temp = adder_o_temp + adder_data_i                                                      ;
             if (exp_done_i)
                 adder_valid_o_temp <= 1                                                                         ;
         end
