@@ -9,8 +9,8 @@ module top_block
     input                               start_i                                                                 ,
     input           [data_size - 1:0]   data_i                                                                  ,
 
-    output          [data_size - 1:0]   adder_o                                                                 ,
-    output                              adder_valid_o
+    output          [data_size - 1:0]   ln_data_o                                                               ,
+    output                              ln_data_valid_o
 );
     //internal downscale
     wire                                sub_result_valid                                                        ;
@@ -19,6 +19,9 @@ module top_block
     wire            [data_size - 1:0]   data_exp_o                                                              ;
     wire                                exp_done_signal_o                                                       ;
     wire                                exp_data_valid_o                                                        ;
+    
+    wire          [data_size - 1:0]     adder_data_o                                                            ;
+    wire                                adder_data_valid_o                                                      ;
     
     downscale_block #(data_size, number_of_data) downscale(
         //input
@@ -52,8 +55,17 @@ module top_block
         .adder_data_valid_i(exp_data_valid_o)                                                                   ,
         .exp_done_i(exp_done_signal_o)                                                                          ,
         
-        .adder_o(adder_o)                                                                                       ,
-        .adder_valid_o(adder_valid_o) 
+        .adder_data_o(adder_data_o)                                                                             ,
+        .adder_data_valid_o(adder_data_valid_o) 
     );
-    
+
+    ln_block ln(
+        .clock_i(clock_i)                                                                                       ,
+        .reset_n_i(reset_n_i)                                                                                   ,
+        .ln_data_i(adder_data_o)                                                                                ,
+        .ln_data_valid_i(adder_data_valid_o)                                                                    ,
+
+        .ln_data_o(ln_data_o)                                                                                   ,
+        .ln_data_valid_o(ln_data_valid_o)
+    );
 endmodule

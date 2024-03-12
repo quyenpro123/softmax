@@ -1,4 +1,4 @@
-module downscale_exp_tb();
+module top_tb();
     parameter                           data_size = 32                                                          ;
     parameter                           number_of_data = 10                                                     ;
 
@@ -10,7 +10,7 @@ module downscale_exp_tb();
     wire                                data_valid_o                                                            ;
     wire            [data_size - 1:0]   data_o                                                                  ;
 
-    top_block downscale_exp (
+    top_block top(
         //input
         .clock_i(clock_i)                                                                                       ,
         .reset_n_i(reset_n_i)                                                                                   ,
@@ -18,8 +18,8 @@ module downscale_exp_tb();
         .data_i(data_i)                                                                                         ,
 
         //output
-        .adder_valid_o(data_valid_o)                                                                            ,
-        .adder_o(data_o)
+        .ln_data_valid_o(data_valid_o)                                                                          ,
+        .ln_data_o(data_o)
     );
 
     initial 

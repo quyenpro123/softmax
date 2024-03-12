@@ -1,4 +1,3 @@
-
 module lut_tb();
     reg                                 clock_i                                                                 ;
     reg                                 reset_n_i                                                               ;
