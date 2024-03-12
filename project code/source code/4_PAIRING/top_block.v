@@ -9,8 +9,8 @@ module top_block
     input                               start_i                                                                 ,
     input           [data_size - 1:0]   data_i                                                                  ,
 
-    output          [data_size - 1:0]   ln_data_o                                                               ,
-    output                              ln_data_valid_o
+    output          [data_size - 1:0]   sub_2_data_o                                                            ,
+    output                              sub_2_data_valid_o
 );
     //internal downscale
     wire                                sub_result_valid                                                        ;
@@ -20,8 +20,11 @@ module top_block
     wire                                exp_done_signal_o                                                       ;
     wire                                exp_data_valid_o                                                        ;
     
-    wire          [data_size - 1:0]     adder_data_o                                                            ;
+    wire            [data_size - 1:0]   adder_data_o                                                            ;
     wire                                adder_data_valid_o                                                      ;
+
+    wire            [data_size - 1:0]   ln_data_o                                                               ;
+    wire                                ln_data_valid_o                                                         ;
     
     downscale_block #(data_size, number_of_data) downscale(
         //input
@@ -67,5 +70,17 @@ module top_block
 
         .ln_data_o(ln_data_o)                                                                                   ,
         .ln_data_valid_o(ln_data_valid_o)
+    );
+
+    subtractor_2_block sub_2(
+        .clock_i(clock_i)                                                                                       ,
+        .reset_n_i(reset_n_i)                                                                                   ,
+        .sub_2_ln_data_i(ln_data_o)                                                                             ,
+        .sub_2_ln_data_valid_i(ln_data_valid_o)                                                                 ,
+        .sub_2_downscale_data_i(sub_result)                                                                     ,
+        .sub_2_downscale_data_valid_i(sub_result_valid)                                                         ,
+
+        .sub_2_data_o(sub_2_data_o)                                                                             ,
+        .sub_2_data_valid_o(sub_2_data_valid_o)
     );
 endmodule

@@ -9,7 +9,6 @@ module top_tb();
     
     wire                                data_valid_o                                                            ;
     wire            [data_size - 1:0]   data_o                                                                  ;
-
     top_block top(
         //input
         .clock_i(clock_i)                                                                                       ,
@@ -18,8 +17,8 @@ module top_tb();
         .data_i(data_i)                                                                                         ,
 
         //output
-        .ln_data_valid_o(data_valid_o)                                                                          ,
-        .ln_data_o(data_o)
+        .sub_2_data_valid_o(data_valid_o)                                                                       ,
+        .sub_2_data_o(data_o)
     );
 
     initial 
