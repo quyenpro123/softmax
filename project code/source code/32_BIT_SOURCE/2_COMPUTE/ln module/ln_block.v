@@ -24,7 +24,7 @@ module ln_block
     reg                                 ln_data_valid_o_temp                                                    ;
 
     wire                                fp_data_valid_wire                                                      ;
-    wire            [data_size/2 - 1:0] lut_ln_man_wire                                                         ;
+    wire            [data_size - 1:0]   lut_ln_man_wire                                                         ;
     wire            [data_size/4 - 1:0] lut_ln_man_input_wire                                                   ;
     wire                                lut_ln_man_valid_wire                                                   ;
 
@@ -119,7 +119,7 @@ module ln_block
             begin
                 if (ln2_exp_valid && lut_ln_man_valid_wire && ~ln_data_valid_o_temp)
                     begin
-                        ln_data_o_temp <= {2'b0, lut_ln_man_wire, 14'b0} + ln2_exp                              ;
+                        ln_data_o_temp <= {2'b0, lut_ln_man_wire[31:2]} + ln2_exp                               ;
                         ln_data_valid_o_temp <= 1                                                               ;
                     end
             end

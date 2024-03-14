@@ -217,10 +217,10 @@ module exp_block
     lut_exp lut(
                     .clock_i(clock_i)                                                                           ,
                     .reset_n_i(reset_n_i)                                                                       ,
-                    .lut_data_i(exp_fxp_data_wire)                                                              ,
-                    .FP_2_FXP_done_i(FP_2_FXP_done_wire)                                                        ,
+                    .lut_exp_data_i(exp_fxp_data_wire)                                                          ,
+                    .lut_exp_data_valid_i(FP_2_FXP_done_wire)                                                   ,
                     
-                    .lut_data_valid_o(next_exp_valid_o_temp_wire)                                               , 
-                    .lut_data_o(next_exp_o_temp_wire) 
+                    .lut_exp_data_valid_o(next_exp_valid_o_temp_wire)                                           , 
+                    .lut_exp_data_o(next_exp_o_temp_wire) 
                 );
 endmodule

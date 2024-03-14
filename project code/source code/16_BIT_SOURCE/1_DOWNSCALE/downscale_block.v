@@ -9,8 +9,8 @@ module downscale_block
     input                               start_i                                                                 , //start signal
     input           [data_size - 1:0]   downscale_data_i                                                        , //data in: Z = {Z1, Z2, Z3, ... , Zn}
 
-    output reg                          sub_result_valid_o                                                      ,         
-    output          [data_size - 1:0]   sub_result_o                                                              //Zi - Zmax
+    output                              downscale_data_valid_o                                                  ,         
+    output          [data_size - 1:0]   downscale_data_o                                                              //Zi - Zmax
 );
 
     integer                             counter_for_loop                                                        ; //variable in for loop  
@@ -29,6 +29,8 @@ module downscale_block
     reg             [7:0]               sub_result_exp                                                          ;
     reg             [24:0]              sub_result_man                                                          ;
     
+    reg                                 sub_data_valid_o_temp                                                   ;
+
     reg                                 sub_result_sign_temp                                                    ;
     reg             [7:0]               sub_result_exp_temp                                                     ;
     reg             [24:0]              sub_result_man_temp                                                     ;
@@ -130,21 +132,22 @@ module downscale_block
     assign Z_max_sign = Z_max[31]                                                                               ;
     assign Z_max_exp = Z_max[30:23]                                                                             ;
     assign Z_max_man = Z_max[22:0]                                                                              ;
-    assign sub_result_o = {sub_result_sign, sub_result_exp, 
+    assign downscale_data_o = {sub_result_sign, sub_result_exp, 
                           sub_result_man[24] ? sub_result_man[23:1] : sub_result_man[22:0]}                     ;
+    assign downscale_data_valid_o = sub_data_valid_o_temp                                                       ; 
 
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
             begin
-                sub_result_valid_o <= 0                                                                         ;
+                sub_data_valid_o_temp <= 0                                                                      ;
                 sub_result_sign <= 0                                                                            ;
                 sub_result_exp <= 0                                                                             ;
                 sub_result_man <= 0                                                                             ;
             end
         else
             begin
-                sub_result_valid_o <= sub_result_valid_temp                                                     ;
+                sub_data_valid_o_temp <= sub_result_valid_temp                                                  ;
                 sub_result_sign <= sub_result_sign_temp                                                         ;
                 sub_result_exp <= sub_result_exp_temp                                                           ;
                 sub_result_man <= sub_result_man_temp                                                           ;

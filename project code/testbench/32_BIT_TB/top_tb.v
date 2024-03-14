@@ -1,4 +1,4 @@
-module top_tb();
+module softmax_32_tb();
     parameter                           data_size = 32                                                          ;
     parameter                           number_of_data = 10                                                     ;
 
@@ -7,8 +7,8 @@ module top_tb();
     reg                                 start_i                                                                 ;
     reg             [data_size - 1:0]   data_i                                                                  ;
     
-    wire                                data_valid_o                                                            ;
-    wire            [data_size - 1:0]   data_o                                                                  ;
+    wire                                exp_2_data_valid_o                                                      ;
+    wire            [data_size - 1:0]   exp_2_data_o                                                            ;
     top_block top(
         //input
         .clock_i(clock_i)                                                                                       ,
@@ -17,8 +17,8 @@ module top_tb();
         .data_i(data_i)                                                                                         ,
 
         //output
-        .sub_2_data_valid_o(data_valid_o)                                                                       ,
-        .sub_2_data_o(data_o)
+        .exp_2_data_valid_o(exp_2_data_valid_o)                                                                 ,
+        .exp_2_data_o(exp_2_data_o)
     );
 
     initial 

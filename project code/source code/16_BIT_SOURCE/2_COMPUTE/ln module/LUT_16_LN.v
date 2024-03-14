@@ -9,9 +9,9 @@ module lut_ln
     input                               lut_ln_data_valid_i                                                     ,
 
     output                              lut_ln_data_valid_o                                                     ,
-    output          [data_size - 1:0]   lut_ln_data_o    
+    output          [data_size - 1:0]   lut_ln_data_o
 );
-    integer                             i                                                                       ;   
+    integer                             i                                                                       ;
     reg             [data_size - 1:0]   LUT_LN  [255:0]                                                         ;
 
     reg             [data_size - 1:0]   lut_ln_data_o_temp                                                      ;
