@@ -1,4 +1,4 @@
-module exp_block 
+module exp_1_block 
 #(
     parameter                           data_size = 32                                                          ,
     parameter                           number_of_data = 10

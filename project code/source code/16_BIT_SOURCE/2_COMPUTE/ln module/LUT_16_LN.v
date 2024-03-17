@@ -1,23 +1,23 @@
 module lut_ln 
 #(
-    parameter                           data_size = 16
+    parameter                           data_size = 32
 )
 (
     input                               clock_i                                                                 ,
     input                               reset_n_i                                                               ,
-    input           [data_size/2 - 1:0] lut_ln_data_i                                                           ,
+    input           [data_size/4 - 1:0] lut_ln_data_i                                                           ,
     input                               lut_ln_data_valid_i                                                     ,
 
     output                              lut_ln_data_valid_o                                                     ,
     output          [data_size - 1:0]   lut_ln_data_o
 );
     integer                             i                                                                       ;
-    reg             [data_size - 1:0]   LUT_LN  [255:0]                                                         ;
+    reg             [data_size/2 - 1:0] LUT_LN  [255:0]                                                         ;
 
     reg             [data_size - 1:0]   lut_ln_data_o_temp                                                      ;
     reg                                 lut_ln_data_valid_o_temp                                                ;
     
-    assign lut_ln_data_o = lut_ln_data_o_temp                                                                   ;
+    assign lut_ln_data_o = {lut_ln_data_o_temp, 16'b0}                                                          ;
     assign lut_ln_data_valid_o = lut_ln_data_valid_o_temp                                                       ;
 
     always @(posedge clock_i) 

@@ -42,7 +42,7 @@ module top_block
         .downscale_data_o(downscale_data_o)
     );
 
-    exp_block #(data_size, number_of_data) exp(
+    exp_1_block #(data_size, number_of_data) exp_1(
         //input
         .clock_i(clock_i)                                                                                       ,
         .reset_n_i(reset_n_i)                                                                                   ,
@@ -88,7 +88,7 @@ module top_block
         .sub_2_data_valid_o(sub_2_data_valid_o)
     );
 
-    exp_2_block exp2(
+    exp_2_block exp_2(
         //input
         .clock_i(clock_i)                                                                                       ,
         .reset_n_i(reset_n_i)                                                                                   ,
@@ -98,5 +98,5 @@ module top_block
         //output
         .exp_2_data_valid_o(exp_2_data_valid_o)                                                                 ,
         .exp_2_data_o(exp_2_data_o)
-    )
+    );
 endmodule

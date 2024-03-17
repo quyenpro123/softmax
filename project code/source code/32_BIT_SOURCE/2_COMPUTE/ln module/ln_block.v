@@ -9,7 +9,7 @@ module ln_block
     input                               ln_data_valid_i                                                         ,
     
     output                              ln_data_valid_o                                                         ,
-    output          [data_size - 1:0]   ln_data_o
+    output          [data_size - 1:0]   ln_data_o                                                                 //2 integer, 30 fractional
 );
     reg                                 input_ready                                                             ;
     reg             [data_size - 1:0]   fxp_data_i_tem                                                          ;
@@ -79,7 +79,6 @@ module ln_block
             begin
                 if (fp_data_valid && ~ln2_exp_valid)
                     begin
-                        $display("%0d", fp_data[30:23])                                                         ;
                         if (fp_data[30:23] == 8'b01111111)
                             ln2_exp <= 32'b0                                                                    ;
                         else if (fp_data[30:23] == 8'b10000000)

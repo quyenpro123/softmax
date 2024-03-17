@@ -1,59 +1,102 @@
-module softmax_32_tb();
-    parameter                           data_size = 32                                                          ;
-    parameter                           number_of_data = 10                                                     ;
+module top_block
+#(
+    parameter                           data_size = 32                                                          ,
+    parameter                           number_of_data = 10
+)
+(
+    input                               clock_i                                                                 ,
+    input                               reset_n_i                                                               ,
+    input                               start_i                                                                 ,
+    input           [data_size - 1:0]   data_i                                                                  ,
 
-    reg                                 clock_i                                                                 ;
-    reg                                 reset_n_i                                                               ;
-    reg                                 start_i                                                                 ;
-    reg             [data_size - 1:0]   data_i                                                                  ;
+    output          [data_size - 1:0]   exp_2_data_o                                                            ,
+    output                              exp_2_data_valid_o
+);
+    //internal downscale
+    wire                                downscale_data_valid_o                                                  ;
+    wire            [data_size - 1:0]   downscale_data_o                                                        ;
+
+    wire            [data_size - 1:0]   exp_data_o                                                              ;
+    wire                                exp_done_signal_o                                                       ;
+    wire                                exp_data_valid_o                                                        ;
     
-    wire                                exp_2_data_valid_o                                                      ;
-    wire            [data_size - 1:0]   exp_2_data_o                                                            ;
-    top_block top(
+    wire            [data_size - 1:0]   adder_data_o                                                            ;
+    wire                                adder_data_valid_o                                                      ;
+
+    wire            [data_size - 1:0]   ln_data_o                                                               ;
+    wire                                ln_data_valid_o                                                         ;
+
+
+    wire            [data_size - 1:0]   sub_2_data_o                                                            ;
+    wire                                sub_2_data_valid_o                                                      ;
+    
+    downscale_block #(data_size, number_of_data) downscale(
         //input
         .clock_i(clock_i)                                                                                       ,
         .reset_n_i(reset_n_i)                                                                                   ,
         .start_i(start_i)                                                                                       ,
-        .data_i(data_i)                                                                                         ,
+        .downscale_data_i(data_i)                                                                               ,
+
+        //output
+        .downscale_data_valid_o(downscale_data_valid_o)                                                         ,
+        .downscale_data_o(downscale_data_o)
+    );
+
+    exp_1_block #(data_size, number_of_data) exp_1(
+        //input
+        .clock_i(clock_i)                                                                                       ,
+        .reset_n_i(reset_n_i)                                                                                   ,
+        .exp_data_i(downscale_data_o)                                                                           ,
+        .exp_data_valid_i(downscale_data_valid_o)                                                               ,
+
+        //output
+        .exp_done_o(exp_done_signal_o)                                                                          ,
+        .exp_data_valid_o(exp_data_valid_o)                                                                     ,
+        .exp_data_o(exp_data_o)
+    );
+    
+    adder_block adder(
+        .clock_i(clock_i)                                                                                       ,
+        .reset_n_i(reset_n_i)                                                                                   ,
+        .adder_data_i(exp_data_o)                                                                               ,
+        .adder_data_valid_i(exp_data_valid_o)                                                                   ,
+        .exp_done_i(exp_done_signal_o)                                                                          ,
+        
+        .adder_data_o(adder_data_o)                                                                             ,
+        .adder_data_valid_o(adder_data_valid_o) 
+    );
+
+    ln_block ln(
+        .clock_i(clock_i)                                                                                       ,
+        .reset_n_i(reset_n_i)                                                                                   ,
+        .ln_data_i(adder_data_o)                                                                                ,
+        .ln_data_valid_i(adder_data_valid_o)                                                                    ,
+
+        .ln_data_o(ln_data_o)                                                                                   ,
+        .ln_data_valid_o(ln_data_valid_o)
+    );
+
+    subtractor_2_block sub_2(
+        .clock_i(clock_i)                                                                                       ,
+        .reset_n_i(reset_n_i)                                                                                   ,
+        .sub_2_ln_data_i(ln_data_o)                                                                             ,
+        .sub_2_ln_data_valid_i(ln_data_valid_o)                                                                 ,
+        .sub_2_downscale_data_i(downscale_data_o)                                                               ,
+        .sub_2_downscale_data_valid_i(downscale_data_valid_o)                                                   ,
+
+        .sub_2_data_o(sub_2_data_o)                                                                             ,
+        .sub_2_data_valid_o(sub_2_data_valid_o)
+    );
+
+    exp_2_block exp_2(
+        //input
+        .clock_i(clock_i)                                                                                       ,
+        .reset_n_i(reset_n_i)                                                                                   ,
+        .exp_2_data_i(sub_2_data_o)                                                                             ,
+        .exp_2_data_valid_i(sub_2_data_valid_o)                                                                 ,
 
         //output
         .exp_2_data_valid_o(exp_2_data_valid_o)                                                                 ,
         .exp_2_data_o(exp_2_data_o)
     );
-
-    initial 
-    begin
-        clock_i = 0                                                                                             ;
-        reset_n_i = 0                                                                                           ;
-        start_i = 0                                                                                             ;
-        data_i = 0                                                                                              ;
-        
-        #30
-        reset_n_i = 1                                                                                           ;
-        #20 
-        start_i = 1                                                                                             ;
-        
-        data_i = 32'hC05060D2                                                                                   ; // -3.2559
-        #10 
-        data_i = 32'h40A5D0A4                                                                                   ; // 5.1817
-        #10
-        data_i = 32'hBF3A1674                                                                                   ; // -0.7269
-        #10
-        data_i = 32'h401D24F6                                                                                   ; // 2.45538
-        #10
-        data_i = 32'hBE3BD70A                                                                                   ; // -0.1834
-        #10
-        data_i = 32'h3F461F7D                                                                                   ; // 0.7739
-        #10
-        data_i = 32'hC0350DF4                                                                                   ; // -2.8289
-        #10
-        data_i = 32'h40BEEE67                                                                                   ; // 5.9666
-        #10
-        data_i = 32'hC0A6D2C4                                                                                   ; // -5.21322
-        #10
-        data_i = 32'h3F9DF3B6                                                                                   ; // 1.233999
-
-
-    end
-    always #5 clock_i = ~clock_i                                                                                ;
 endmodule

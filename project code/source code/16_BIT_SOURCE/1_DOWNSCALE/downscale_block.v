@@ -1,19 +1,22 @@
 module downscale_block 
 #(
-    parameter                           data_size = 32                                                          , //number of bits of one data
+    parameter                           data_size = 16                                                          , //number of bits of one data
     parameter                           number_of_data = 10                                                       //the amount of data corressponds to number of categories
 )
 (
     input                               clock_i                                                                 , //clock source
     input                               reset_n_i                                                               , //reset active low
     input                               start_i                                                                 , //start signal
-    input           [data_size - 1:0]   downscale_data_i                                                        , //data in: Z = {Z1, Z2, Z3, ... , Zn}
+    input                               downscale_data_valid_i                                                  ,
+    input           [2*data_size - 1:0] downscale_data_i                                                        , //data in: Z = {Z1, Z2, Z3, ... , Zn}
 
     output                              downscale_data_valid_o                                                  ,         
     output          [data_size - 1:0]   downscale_data_o                                                              //Zi - Zmax
 );
 
     integer                             counter_for_loop                                                        ; //variable in for loop  
+    reg             [data_size - 1:0]   fxp_input_data                                                          ; //fxp data: 1.5.10
+    reg                                 input_valid_to_save                                                     ;
     reg             [data_size - 1:0]   input_buffer  [number_of_data - 1:0]                                    ; //buffer save input data
 
     //----------------------------------declare internal variables for max detect block-------------------------
@@ -26,28 +29,28 @@ module downscale_block
     reg             [7:0]               counter_data_for_sub                                                    ;
 
     reg                                 sub_result_sign                                                         ;
-    reg             [7:0]               sub_result_exp                                                          ;
-    reg             [24:0]              sub_result_man                                                          ;
+    reg             [4:0]               sub_result_exp                                                          ;
+    reg             [11:0]              sub_result_man                                                          ;
     
     reg                                 sub_data_valid_o_temp                                                   ;
 
     reg                                 sub_result_sign_temp                                                    ;
-    reg             [7:0]               sub_result_exp_temp                                                     ;
-    reg             [24:0]              sub_result_man_temp                                                     ;
+    reg             [4:0]               sub_result_exp_temp                                                     ;
+    reg             [11:0]              sub_result_man_temp                                                     ;
     reg                                 sub_result_valid_temp                                                   ;
     
     reg                                 Z_i_sign                                                                ;
-    reg             [7:0]               Z_i_exp                                                                 ;
-    reg             [22:0]              Z_i_man                                                                 ;
-    reg             [23:0]              Z_i_man_temp                                                            ;
+    reg             [4:0]               Z_i_exp                                                                 ;
+    reg             [9:0]               Z_i_man                                                                 ;
+    reg             [10:0]              Z_i_man_temp                                                            ;
 
     wire                                Z_max_sign                                                              ;
-    wire            [7:0]               Z_max_exp                                                               ;
-    wire            [22:0]              Z_max_man                                                               ;
-    reg             [23:0]              Z_max_man_temp                                                          ;
+    wire            [4:0]               Z_max_exp                                                               ;
+    wire            [9:0]               Z_max_man                                                               ;
+    reg             [10:0]              Z_max_man_temp                                                          ;
 
-    reg             [8:0]               exp_sub                                                                 ;
-    reg             [7:0]               abs_exp_diff                                                            ;
+    reg             [5:0]               exp_sub                                                                 ;
+    reg             [4:0]               abs_exp_diff                                                            ;
 
 
     //-------------------------------------------FSM variables--------------------------------------------------
@@ -66,9 +69,27 @@ module downscale_block
             for (counter_for_loop = 0 ; counter_for_loop < number_of_data ; counter_for_loop = counter_for_loop + 1)
                 input_buffer[counter_for_loop] <= 0                                                             ;
         else    
-            if (start_i && counter_data_for_max >= 0 && max_done == 0)
-                input_buffer[counter_data_for_max] <= downscale_data_i                                          ;
+            if (start_i && counter_data_for_max >= 0 && max_done == 0 && input_valid_to_save)
+                input_buffer[counter_data_for_max] <= fxp_input_data                                            ;
     end   
+    //fp_32 to fx_16
+    always @(posedge clock_i) 
+    begin
+        if (~reset_n_i)
+            begin    
+                input_valid_to_save <= 0                                                                        ;
+                fxp_input_data <= 0                                                                             ;
+            end
+        else
+            if (downscale_data_valid_i)
+                begin
+                    fxp_input_data <= {downscale_data_i[31], downscale_data_i[30:23] - 127 + 15, 
+                                       downscale_data_i[22:13]}                                                 ;
+                    input_valid_to_save <= 1                                                                    ;
+                end
+            if (input_valid_to_save)
+                input_valid_to_save <= 0                                                                        ;
+    end
     //----------------------------------------------------MAX DETECT--------------------------------------------
     //handle data max
     always @(posedge clock_i)
@@ -110,7 +131,7 @@ module downscale_block
         if (~reset_n_i)
             counter_data_for_max <= 0                                                                           ;
         else
-            if(counter_data_for_max < number_of_data && start_i && max_done == 0)
+            if(counter_data_for_max < number_of_data && start_i && max_done == 0 && input_valid_to_save) 
                 counter_data_for_max <= counter_data_for_max + 1                                                ;
     end
     
@@ -129,11 +150,11 @@ module downscale_block
 
     //------------------------------------------SUBSTRACTOR-----------------------------------------------------
 
-    assign Z_max_sign = Z_max[31]                                                                               ;
-    assign Z_max_exp = Z_max[30:23]                                                                             ;
-    assign Z_max_man = Z_max[22:0]                                                                              ;
+    assign Z_max_sign = Z_max[15]                                                                               ;
+    assign Z_max_exp = Z_max[14:10]                                                                             ;
+    assign Z_max_man = Z_max[9:0]                                                                              ;
     assign downscale_data_o = {sub_result_sign, sub_result_exp, 
-                          sub_result_man[24] ? sub_result_man[23:1] : sub_result_man[22:0]}                     ;
+                          sub_result_man[11] ? sub_result_man[10:1] : sub_result_man[9:0]}                      ;
     assign downscale_data_valid_o = sub_data_valid_o_temp                                                       ; 
 
     always @(posedge clock_i) 
@@ -203,16 +224,16 @@ module downscale_block
                 begin
                     sub_result_sign_temp = 0                                                                    ;
                     sub_result_exp_temp = 0                                                                     ;
-                    sub_result_man_temp = {1'b0, 1'b1, 23'b0}                                                   ;
+                    sub_result_man_temp = {1'b0, 1'b1, 10'b0}                                                   ;
                 end
                 else
                 begin
                     sub_result_sign_temp = 1                                                                    ;
                     exp_sub = Z_i_exp - Z_max_exp                                                               ;
-                    abs_exp_diff = exp_sub[8] ? ~(exp_sub[7:0]) + 1'b1 : exp_sub[7:0]                           ;
-                    Z_max_man_temp = exp_sub[8] ? {1'b1, Z_max_man} : {1'b1, Z_max_man} >> abs_exp_diff         ;
-                    Z_i_man_temp = exp_sub[8] ? {1'b1, Z_i_man} >> abs_exp_diff : {1'b1, Z_i_man}               ;
-                    sub_result_exp_temp = exp_sub[8] ? Z_max_exp : Z_i_exp                                      ;
+                    abs_exp_diff = exp_sub[5] ? ~(exp_sub[4:0]) + 1'b1 : exp_sub[4:0]                           ;
+                    Z_max_man_temp = exp_sub[5] ? {1'b1, Z_max_man} : {1'b1, Z_max_man} >> abs_exp_diff         ;
+                    Z_i_man_temp = exp_sub[5] ? {1'b1, Z_i_man} >> abs_exp_diff : {1'b1, Z_i_man}               ;
+                    sub_result_exp_temp = exp_sub[5] ? Z_max_exp : Z_i_exp                                      ;
                     sub_result_man_temp = (Z_max_sign && Z_i_sign) ? Z_i_man_temp - Z_max_man_temp :
                                           (~Z_max_sign && Z_i_sign) ? Z_i_man_temp + Z_max_man_temp :
                                           Z_max_man_temp - Z_i_man_temp                                         ;
@@ -224,12 +245,12 @@ module downscale_block
                 exp_sub = 0                                                                                     ;
                 abs_exp_diff = 0                                                                                ;
                 sub_result_sign_temp = sub_result_sign                                                          ;
-                sub_result_exp_temp = sub_result_man[24] ? sub_result_exp + 1 : 
-                                      sub_result_man[23] ? sub_result_exp : sub_result_exp - 1                  ;
-                sub_result_man_temp = sub_result_man[24] ? sub_result_man : 
-                                      (sub_result_man[23] ? sub_result_man : sub_result_man << 1)               ;
-                sub_result_valid_temp = sub_result_man_temp[24] || 
-                                      ~sub_result_man_temp[24] && sub_result_man_temp[23]                       ;
+                sub_result_exp_temp = sub_result_man[11] ? sub_result_exp + 1 : 
+                                      sub_result_man[10] ? sub_result_exp : sub_result_exp - 1                  ;
+                sub_result_man_temp = sub_result_man[11] ? sub_result_man : 
+                                      (sub_result_man[10] ? sub_result_man : sub_result_man << 1)               ;
+                sub_result_valid_temp = sub_result_man_temp[11] || 
+                                      ~sub_result_man_temp[11] && sub_result_man_temp[10]                       ;
             end
             default:
             begin
@@ -258,9 +279,9 @@ module downscale_block
             if (sub_current_state == IDLE && max_done == 1 && sub_done == 0 
                 && counter_data_for_sub < number_of_data)
             begin
-                Z_i_sign <= input_buffer[counter_data_for_sub][31]                                              ;
-                Z_i_exp <= input_buffer[counter_data_for_sub][30:23]                                            ;
-                Z_i_man <= input_buffer[counter_data_for_sub][22:0]                                             ;
+                Z_i_sign <= input_buffer[counter_data_for_sub][15]                                              ;
+                Z_i_exp <= input_buffer[counter_data_for_sub][14:10]                                            ;
+                Z_i_man <= input_buffer[counter_data_for_sub][9:0]                                              ;
             end
     end
     //handle counter for sub block
