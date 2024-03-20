@@ -11,7 +11,7 @@ module lut_exp
     output                              lut_exp_data_valid_o                                                    ,
     output          [data_size - 1:0]   lut_exp_data_o
 );
-    reg             [data_size - 1:0]   LUT_EXP         [19:0]                                                  ;
+    reg             [data_size/2 - 1:0] LUT_EXP         [19:0]                                                  ;
     reg                                 output_valid_o_temp                                                     ;
     reg             [2*data_size - 1:0] data_o_temp                                                             ;
     reg             [data_size - 1:0]   pre_data_o_temp                                                         ;
