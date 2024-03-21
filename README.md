@@ -1,12 +1,12 @@
 # SOFTMAX FUNCTION WITH VERILOG
 ### 1. Softmax
     - Softmax is an activation function and is used in the last layer in DNN
-![Softmax regression model as a neural network ](soft_max_neural.png)
+![Softmax regression model as a neural network ](illustrating%20images/soft_max_neural.png)
 Figure 1: Softmax regression model as a neural network
 ### 2. Mathetical Model
     - Input of softmax function is real vector z = {z1...zC} with C is number of class
     - Output of softmax function is real(probability) vector a = {a1...aC} and sum of vector a is equal to 1
-![Mathetical Model of Softmax function](softmax_mathetical_model.png)
+![Mathetical Model of Softmax function](illustrating%20images/softmax_mathetical_model.png)
 Figure 2: Softmax mathetical model
 ### 3. Hardware Implementation Approach
     - The simplest way is to directly implement the initial softmax expression. But it has some problems.
@@ -18,35 +18,35 @@ Figure 2: Softmax mathetical model
 ### 4. Specification
 ### 4.1. 32 Bit Version
 #### 4.1.1 Block Diagram
-![block_diagram_32](block_diagram_32.png)
+![block_diagram_32](/illustrating%20images/32_bit/block_diagram_32.png)
 #### 4.1.2 Sub-Blocks
-- **Downscale block 32 bit:**
-![downscale_block_32](downscale_block_32.png)
+- **Downscale block 32 bit:** 
+![downscale_block_32](illustrating%20images/32_bit/downscale_block_32.png)
 - **Exp 1 block 32 bit:**
-![exp_1_32](exp_1.png)
+![exp_1_32](illustrating%20images/32_bit/exp_1_32.png)
 - **Adder block**
-![adder_block_32](adder_block_32.png)
+![adder_block_32](illustrating%20images/32_bit/adder_block_32.png)
 - **Logarith nature block**
-![Logarith_block_32](Logarith_block_32.png)
+![Logarith_block_32](illustrating%20images/32_bit/Logarith_block_32.png)
 - **Subtractor 2 block**
-![sub_2_block_32](sub_2_block_32.png)
+![sub_2_block_32](illustrating%20images/32_bit/sub_2_block_32.png)
 - **Exp 2 - Ouput Block**
-![output_block_32](output_block_32.png)
+![output_block_32](illustrating%20images/32_bit/output_block_32.png)
 
 #### 4.2. 16 Bit Version
 ##### 4.2.1. Block Diagram
-![block_diagram_16](block_diagram_16.png)
+![block_diagram_16](illustrating%20images/16_bit/block_diagram_16.png)
 #### 4.2.2 Sub_Blocks
 - **Downscale block**
-![downscale_block_16](downscale_block_16.png)
+![downscale_block_16](illustrating%20images/16_bit/downscale_block_16.png)
 - **Exp 1 block**
-![exp_1_16](exp_1_16.png)
+![exp_1_16](illustrating%20images/16_bit/exp_1_16.png)
 - **Adder block**
-![adder_block_16](adder_block_16.png)
+![adder_block_16](illustrating%20images/16_bit/adder_block_16.png)
 - **Logarith nature block**
-![Logarith_block_16](Logarith_block_16.png)
+![Logarith_block_16](illustrating%20images/16_bit/Logarith_block_16.png)
 - **Subtractor 2 block**
-![sub_2_block_16](sub_2_block_16.png)
+![sub_2_block_16](illustrating%20images/16_bit/sub_2_block_16.png)
 - **Exp 2 - Ouput Block**
-![output_block_16](output_block_16.png)
+![output_block_16](illustrating%20images/16_bit/output_block_16.png)
 ### 5. Simulation
