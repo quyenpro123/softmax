@@ -1,6 +1,6 @@
-module adder_block
+module adder_block_16
 #(
-    parameter                           data_size = 32                                                          ,
+    parameter                           data_size = 16                                                          ,
     parameter                           number_of_data = 10
 )
 (
@@ -26,12 +26,10 @@ module adder_block
         end
         else
         begin
-            if (adder_data_valid_i && ~exp_done_i)
-                adder_data_o_temp = adder_data_o_temp + adder_data_i                                            ;
+            if (adder_data_valid_i)
+                adder_data_o_temp = adder_data_o_temp + {3'b0,adder_data_i}                                     ;
             if (exp_done_i)
                 adder_data_valid_o_temp <= 1                                                                    ;
         end
     end
-
-
 endmodule
