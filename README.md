@@ -16,6 +16,37 @@ Figure 2: Softmax mathetical model
         + Downscaling value of exp(zi) to exp(zi - zmax) with zmax is max value of vector input z
         + Transfroming the expression for removing the division operator
 ### 4. Specification
-#### 4.1. Block diagram 
-#### 4.2. Sub-Blocks
+### 4.1. 32 Bit Version
+#### 4.1.1 Block Diagram
+![block_diagram_32](block_diagram_32.png)
+#### 4.1.2 Sub-Blocks
+- **Downscale block 32 bit:**
+![downscale_block_32](downscale_block_32.png)
+- **Exp 1 block 32 bit:**
+![exp_1_32](exp_1.png)
+- **Adder block**
+![adder_block_32](adder_block_32.png)
+- **Logarith nature block**
+![Logarith_block_32](Logarith_block_32.png)
+- **Subtractor 2 block**
+![sub_2_block_32](sub_2_block_32.png)
+- **Exp 2 - Ouput Block**
+![output_block_32](output_block_32.png)
+
+#### 4.2. 16 Bit Version
+##### 4.2.1. Block Diagram
+![block_diagram_16](block_diagram_16.png)
+#### 4.2.2 Sub_Blocks
+- **Downscale block**
+![downscale_block_16](downscale_block_16.png)
+- **Exp 1 block**
+![exp_1_16](exp_1_16.png)
+- **Adder block**
+![adder_block_16](adder_block_16.png)
+- **Logarith nature block**
+![Logarith_block_16](Logarith_block_16.png)
+- **Subtractor 2 block**
+![sub_2_block_16](sub_2_block_16.png)
+- **Exp 2 - Ouput Block**
+![output_block_16](output_block_16.png)
 ### 5. Simulation
