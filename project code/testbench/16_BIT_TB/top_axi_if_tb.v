@@ -22,6 +22,7 @@ module top_tb_16();
         .s_axis_data_i(s_axis_data_i)                                                                           ,
         .s_axis_last_i(s_axis_last_i)                                                                           ,
         .s_axis_ready_o(s_axis_ready_o)                                                                         ,
+        .m_axis_ready_i(m_axis_ready_i)                                                                         ,
         .m_axis_valid_o(m_axis_valid_o)                                                                         ,
         .m_axis_data_o(m_axis_data_o)                                                                           ,
         .m_axis_last_o(m_axis_last_o)
@@ -46,7 +47,8 @@ module top_tb_16();
         axi_reset_n_i = 0                                                                                       ;
         s_axis_data_i = 0                                                                                       ;
         s_axis_valid_i = 0                                                                                      ;
-        s_axis_last_i <= 0                                                                                      ;
+        s_axis_last_i = 0                                                                                      ;
+        m_axis_ready_i = 1;
         #30
         axi_reset_n_i = 1                                                                                       ;
     end

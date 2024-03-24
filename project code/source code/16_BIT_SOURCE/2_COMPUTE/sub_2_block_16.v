@@ -49,7 +49,7 @@ module sub_2_block_16
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
-            for(i = 0 ; i < 19 ; i = i + 1)
+            for(i = 0 ; i < 10 ; i = i + 1)
                 sub_2_input_buffer[i] <= 0                                                                      ;
         else
             if (sub_2_downscale_data_valid_i)

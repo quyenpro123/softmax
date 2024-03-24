@@ -19,16 +19,7 @@ module exp_1_block_16
     reg                                 exp_data_valid_o_temp                                                   ;
     reg             [4*data_size - 1:0] exp_data_o_temp                                                         ;
     reg             [2*data_size - 1:0] pre_exp_data_o_temp                                                     ;
-    reg             [7:0]               counter_for_done_exp                                                    ;
 
-    always @(posedge clock_i) 
-    begin
-        if (~reset_n_i)
-            counter_for_done_exp <= 0                                                                           ;
-        else
-            if (exp_data_valid_o_temp)
-                counter_for_done_exp <= counter_for_done_exp + 1                                                ;
-    end
     
     always @(posedge clock_i) 
     begin

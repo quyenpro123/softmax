@@ -109,9 +109,10 @@ module top_block_16
         .exp_data_i(sub_2_data_o)                                                                               ,
         .exp_data_valid_i(sub_2_data_valid_o)                                                                   ,
         .exp_sub_2_done_i(sub_2_done_o)                                                                         ,
+        .m_axis_ready_i(m_axis_ready_i)                                                                         ,
         //output
-        .exp_done_o(m_axis_last_o)                                                                              ,
-        .exp_data_valid_o(m_axis_valid_o)                                                                       ,
-        .exp_data_o(m_axis_data_o)
+        .m_axis_last_o(m_axis_last_o)                                                                           ,
+        .m_axis_valid_o(m_axis_valid_o)                                                                         ,
+        .m_axis_data_o(m_axis_data_o)
     );
 endmodule

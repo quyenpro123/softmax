@@ -81,7 +81,7 @@ module downscale_block_16
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
-            for (counter_for_loop = 0 ; counter_for_loop < 20 ; counter_for_loop = counter_for_loop + 1)
+            for (counter_for_loop = 0 ; counter_for_loop < 10 ; counter_for_loop = counter_for_loop + 1)
                 input_buffer[counter_for_loop] <= 0                                                             ;
         else    
             if (s_axis_ready_o)

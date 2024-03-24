@@ -9,41 +9,82 @@ module exp_2_block_16
     input                               exp_data_valid_i                                                        ,
     input                               exp_sub_2_done_i                                                        ,
 
-    output  reg                         exp_done_o                                                              ,
-    output  reg                         exp_data_valid_o                                                        ,
-    output  reg     [data_size - 1:0]   exp_data_o
+    //Master AXI4 Stream 
+    input                               m_axis_ready_i                                                          ,
+    output  reg                         m_axis_last_o                                                           ,
+    output  reg                         m_axis_valid_o                                                          ,
+    output  reg     [data_size - 1:0]   m_axis_data_o
 );
     //----------------------------------------internal variable-------------------------------------------------
+    integer                             i                                                                       ;
+    reg             [7:0]               counter_data_output                                                     ;
+    reg             [7:0]               m_axis_counter_data                                                     ;
+    reg             [7:0]               number_of_data                                                          ;
     reg             [data_size - 1:0]   LUT_EXP         [11:0]                                                  ;
     wire            [data_size - 1:0]   exp_data_i_temp                                                         ;
     reg                                 exp_data_valid_o_temp                                                   ;
     reg             [4*data_size - 1:0] exp_data_o_temp                                                         ;
     reg             [2*data_size - 1:0] pre_exp_data_o_temp                                                     ;
-    reg             [7:0]               counter_for_done_exp                                                    ;
-
-    always @(posedge clock_i) 
+    reg             [data_size - 1:0]   output_buffer   [9:0]                                                   ;
+    
+    
+    always @(posedge clock_i)
     begin
         if (~reset_n_i)
-            counter_for_done_exp <= 0                                                                           ;
+            for(i = 0 ; i < 10 ; i = i + 1)
+                output_buffer[i] <= 0                                                                           ;
         else
             if (exp_data_valid_o_temp)
-                counter_for_done_exp <= counter_for_done_exp + 1                                                ;
+                output_buffer[counter_data_output] <= pre_exp_data_o_temp[31:16]                                ;
+    end
+    
+    always @(posedge clock_i)
+    begin
+        if (~reset_n_i)
+            counter_data_output <= 0                                                                            ;
+        else
+            if (exp_data_valid_o_temp)
+                counter_data_output <= counter_data_output + 1                                                  ;
+    end
+    
+    always @(posedge clock_i)
+    begin
+        if (~reset_n_i)
+            number_of_data <= 0                                                                                 ;
+        else
+            if (exp_sub_2_done_i)
+                number_of_data <= counter_data_output                                                           ;
+    end
+    
+    always @(posedge clock_i)
+    begin
+        if (~reset_n_i)
+            m_axis_counter_data <= 0                                                                            ;
+        else
+            if (m_axis_ready_i && m_axis_valid_o && m_axis_counter_data < number_of_data)
+                m_axis_counter_data <= m_axis_counter_data + 1                                                  ;
     end
     
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
             begin
-                exp_data_valid_o <= 0                                                                           ;
-                exp_done_o <= 0                                                                                 ;
-                exp_data_o <= 0                                                                                 ;
+                m_axis_valid_o <= 0                                                                             ;
+                m_axis_last_o <= 0                                                                              ;
+                m_axis_data_o <= 0                                                                              ;
             end
         else
             begin
-                exp_data_valid_o <= exp_data_valid_o_temp                                                       ;
-                exp_data_o <= pre_exp_data_o_temp[31:16]                                                        ;
-                if (exp_sub_2_done_i)
-                    exp_done_o <= 1                                                                             ;
+                if (m_axis_counter_data < number_of_data)
+                    m_axis_valid_o <= 1                                                                         ;
+                else
+                    m_axis_valid_o = 0                                                                          ;
+                if (m_axis_counter_data < number_of_data && m_axis_valid_o)
+                    m_axis_data_o <= output_buffer[m_axis_counter_data]                                         ;
+                if (m_axis_counter_data == number_of_data - 1)
+                    m_axis_last_o <= 1                                                                          ;
+                if (m_axis_last_o)
+                    m_axis_last_o <= 0                                                                          ;
             end
     end
 
