@@ -1,7 +1,6 @@
 module adder_block_16
 #(
-    parameter                           data_size = 16                                                          ,
-    parameter                           number_of_data = 10
+    parameter                           data_size = 16
 )
 (
     input                               clock_i                                                                 ,

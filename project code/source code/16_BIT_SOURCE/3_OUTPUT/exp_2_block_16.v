@@ -1,20 +1,20 @@
-module exp_block_16 
+module exp_2_block_16 
 #(
-    parameter                           data_size = 16                                                          ,
-    parameter                           number_of_data = 10
+    parameter                           data_size = 16
 )
 (
     input                               clock_i                                                                 ,
     input                               reset_n_i                                                               ,
     input           [data_size - 1:0]   exp_data_i                                                              , // 1.7.8
     input                               exp_data_valid_i                                                        ,
+    input                               exp_sub_2_done_i                                                        ,
 
     output  reg                         exp_done_o                                                              ,
     output  reg                         exp_data_valid_o                                                        ,
     output  reg     [data_size - 1:0]   exp_data_o
 );
     //----------------------------------------internal variable-------------------------------------------------
-    reg             [data_size - 1:0]   LUT_EXP         [10:0]                                                  ;
+    reg             [data_size - 1:0]   LUT_EXP         [11:0]                                                  ;
     wire            [data_size - 1:0]   exp_data_i_temp                                                         ;
     reg                                 exp_data_valid_o_temp                                                   ;
     reg             [4*data_size - 1:0] exp_data_o_temp                                                         ;
@@ -26,7 +26,7 @@ module exp_block_16
         if (~reset_n_i)
             counter_for_done_exp <= 0                                                                           ;
         else
-            if (exp_data_valid_o_temp && counter_for_done_exp < number_of_data)
+            if (exp_data_valid_o_temp)
                 counter_for_done_exp <= counter_for_done_exp + 1                                                ;
     end
     
@@ -42,7 +42,7 @@ module exp_block_16
             begin
                 exp_data_valid_o <= exp_data_valid_o_temp                                                       ;
                 exp_data_o <= pre_exp_data_o_temp[31:16]                                                        ;
-                if (counter_for_done_exp == number_of_data)
+                if (exp_sub_2_done_i)
                     exp_done_o <= 1                                                                             ;
             end
     end
@@ -53,6 +53,7 @@ module exp_block_16
         if (~reset_n_i)
         begin
             //fixed point 0 signed, 0 integer, 32 fraction
+            LUT_EXP[11] <= 32'b0000_0000_0001_0101                                                              ; //e^-(2^3)
             LUT_EXP[10] <= 16'b0000_0100_1011_0000                                                              ; //e^-(2^2)
             LUT_EXP[9]  <= 16'b0010_0010_1010_0101                                                              ; //e^-(2^1)
             LUT_EXP[8]  <= 16'b0101_1110_0010_1101                                                              ; //e^-(2^0)
@@ -78,49 +79,44 @@ module exp_block_16
             end
             else
             begin
-                if (exp_data_i_temp[14:11])
+                if (exp_data_i_temp[14:12])
                 begin
                     exp_data_o_temp = 0                                                                         ;
                     pre_exp_data_o_temp = 0                                                                     ;
                 end
                 else
                 begin
-                    exp_data_o_temp = exp_data_i_temp[10] ? (exp_data_i_temp[9] ? {LUT_EXP[10], 16'b0} * {LUT_EXP[9], 16'b0} : {LUT_EXP[10], 48'b0})
+                    exp_data_o_temp = exp_data_i_temp[11] ? (exp_data_i_temp[10] ? {LUT_EXP[11], 16'b0} * {LUT_EXP[10], 16'b0} : {LUT_EXP[11], 48'b0})
+                                : (exp_data_i_temp[10] ? {LUT_EXP[10], 48'b0} : 64'b0)                            ;
+                    pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
+                    exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[9] ? pre_exp_data_o_temp * {LUT_EXP[9], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[9] ? {LUT_EXP[9], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[8] ? pre_exp_data_o_temp * {LUT_EXP[8], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[8] ? {LUT_EXP[8], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[7] ? pre_exp_data_o_temp * {LUT_EXP[7], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[7] ? {LUT_EXP[7], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[6] ? pre_exp_data_o_temp * {LUT_EXP[6], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[6] ? {LUT_EXP[6], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[5] ? pre_exp_data_o_temp * {LUT_EXP[5], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[5] ? {LUT_EXP[5], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[4] ? pre_exp_data_o_temp * {LUT_EXP[4], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[4] ? {LUT_EXP[4], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[3] ? pre_exp_data_o_temp * {LUT_EXP[3], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[3] ? {LUT_EXP[3], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[2] ? pre_exp_data_o_temp * {LUT_EXP[2], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[2] ? {LUT_EXP[2], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[1] ? pre_exp_data_o_temp * {LUT_EXP[1], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[1] ? {LUT_EXP[1], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
-            
+                    
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[0] ? pre_exp_data_o_temp * {LUT_EXP[0], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[0] ? {LUT_EXP[0], 48'b0} : 64'b0)                            ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;

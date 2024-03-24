@@ -1,7 +1,6 @@
 module sub_2_block_16 
 #(
-    parameter                           data_size = 16                                                          ,
-    parameter                           number_of_data = 10
+    parameter                           data_size = 16
 )
 (
     input                               clock_i                                                                 ,
@@ -11,14 +10,16 @@ module sub_2_block_16
 
     input           [data_size - 1:0]   sub_2_downscale_data_i                                                  ,
     input                               sub_2_downscale_data_valid_i                                            ,
+    input           [7:0]               sub_2_downscale_number_of_data_i                                        ,
 
     output          [data_size - 1:0]   sub_2_data_o                                                            ,
+    output                              sub_2_done_o                                                            ,
     output                              sub_2_data_valid_o
 );
     //internal variables for input
     integer                             i                                                                       ;
     reg             [7:0]               counter_downscale_input_stream                                          ;
-    reg             [data_size - 1:0]   sub_2_input_buffer  [number_of_data - 1:0]                              ;
+    reg             [data_size - 1:0]   sub_2_input_buffer  [9:0]                                               ;
     reg                                 sub_2_input_buffer_valid                                                ;
 
     reg                                 sub_2_ln_data_i_valid_temp                                              ;
@@ -28,7 +29,8 @@ module sub_2_block_16
     reg                                 sub_2_data_valid_o_temp                                                 ;
     reg             [data_size:0]       sub_2_data_o_temp                                                       ;
     reg             [7:0]               counter_sub_2_output_stream                                             ;
-
+    reg                                 sub_2_done_o_temp                                                       ;
+    
     //variables for FSM
     localparam                          IDLE = 0                                                                ;
     localparam                          SUBTRACTOR = 1                                                          ;
@@ -38,6 +40,7 @@ module sub_2_block_16
     reg             [1:0]               sub_2_next_state                                                        ;
 
     //-------------------------------------------------update output--------------------------------------------
+    assign sub_2_done_o = sub_2_done_o_temp                                                                     ;
     assign sub_2_data_o = ~sub_2_data_o_temp[15:0] + 1                                                          ;
     assign sub_2_data_valid_o = sub_2_data_valid_o_temp                                                         ;
 
@@ -46,10 +49,10 @@ module sub_2_block_16
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
-            for(i = 0 ; i < number_of_data ; i = i + 1)
+            for(i = 0 ; i < 19 ; i = i + 1)
                 sub_2_input_buffer[i] <= 0                                                                      ;
         else
-            if (sub_2_downscale_data_valid_i && counter_downscale_input_stream < number_of_data)
+            if (sub_2_downscale_data_valid_i)
                 sub_2_input_buffer[counter_downscale_input_stream] <= sub_2_downscale_data_i                    ;
 
     end
@@ -60,7 +63,7 @@ module sub_2_block_16
         if (~reset_n_i)
             counter_downscale_input_stream <= 0                                                                 ;
         else
-            if (sub_2_downscale_data_valid_i && counter_downscale_input_stream < number_of_data)
+            if (sub_2_downscale_data_valid_i)
                 counter_downscale_input_stream <= counter_downscale_input_stream + 1                            ;
     end
 
@@ -88,8 +91,7 @@ module sub_2_block_16
         if (~reset_n_i)
             sub_2_input_buffer_valid <= 0                                                                       ;
         else
-            if (counter_sub_2_output_stream < number_of_data && counter_downscale_input_stream > 
-                                              counter_sub_2_output_stream && ~sub_2_input_buffer_valid)
+            if (counter_downscale_input_stream > counter_sub_2_output_stream && ~sub_2_input_buffer_valid)
                 sub_2_input_buffer_valid <= 1                                                                   ;
             if (sub_2_input_buffer_valid)
                 sub_2_input_buffer_valid <= 0                                                                   ;
@@ -118,9 +120,10 @@ module sub_2_block_16
                 else
                     sub_2_next_state = SUBTRACTOR                                                               ;
             POST_SUB: 
-                if (~sub_2_data_valid_o_temp && counter_sub_2_output_stream < number_of_data - 1)
+                if (~sub_2_data_valid_o_temp && counter_sub_2_output_stream < sub_2_downscale_number_of_data_i - 1 
+                    && ~sub_2_downscale_number_of_data_i)
                     sub_2_next_state = SUBTRACTOR                                                               ;
-                else if (counter_sub_2_output_stream == number_of_data - 1)
+                else if (counter_sub_2_output_stream == sub_2_downscale_number_of_data_i - 1 && ~sub_2_downscale_number_of_data_i)
                     sub_2_next_state = IDLE                                                                     ;
                 else
                     sub_2_next_state = POST_SUB                                                                 ;
@@ -161,7 +164,16 @@ module sub_2_block_16
         if (~reset_n_i)
             counter_sub_2_output_stream <= 0                                                                    ;
         else
-            if (sub_2_current_state == POST_SUB && counter_sub_2_output_stream < number_of_data)
+            if (sub_2_current_state == POST_SUB && counter_sub_2_output_stream < sub_2_downscale_number_of_data_i && ~sub_2_downscale_number_of_data_i)
                 counter_sub_2_output_stream <= counter_sub_2_output_stream + 1                                  ;
+    end
+    
+    always @(posedge clock_i)
+    begin
+        if (~reset_n_i)
+            sub_2_done_o_temp <= 0                                                                              ;
+        else
+            if (counter_sub_2_output_stream == sub_2_downscale_number_of_data_i - 1)
+                sub_2_done_o_temp <= 1                                                                          ;
     end
 endmodule
