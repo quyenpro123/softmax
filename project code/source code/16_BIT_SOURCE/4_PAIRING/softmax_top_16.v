@@ -1,4 +1,4 @@
-module top_block_16
+module softmax_top_16
 #(
     parameter                           data_size = 16
 )
@@ -13,7 +13,7 @@ module top_block_16
 
     //master axi4 stream
     input                               m_axis_ready_i                                                          ,
-    output          [data_size - 1:0]   m_axis_data_o                                                           ,
+    output          [2*data_size - 1:0] m_axis_data_o                                                           ,
     output                              m_axis_valid_o                                                          ,
     output                              m_axis_last_o
     

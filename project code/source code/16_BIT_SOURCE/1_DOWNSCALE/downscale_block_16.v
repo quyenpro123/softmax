@@ -28,7 +28,8 @@ module downscale_block_16
     reg                                 max_done                                                                ; //signal that max value was found
     reg             [7:0]               counter_data_for_max                                                    ; //count number of input data was saved
     reg                                 s_axis_last_i_temp                                                      ;
-    
+    reg                                 fxp_convert_done                                                        ;
+        
     //----------------------------------declare internal variables for sub block--------------------------------
     reg                                 sub_done                                                                ;
     reg             [data_size - 1:0]   sub_result                                                              ;
@@ -46,6 +47,8 @@ module downscale_block_16
     //----------------------------------------------------------------------------------------------------------
     assign downscale_number_of_data_o = number_of_data                                                          ;
     assign downscale_done_o = sub_done                                                                          ;
+    
+    //update output
      always @(posedge clock_i) 
      begin
         if (~reset_n_i)
@@ -84,7 +87,7 @@ module downscale_block_16
             for (counter_for_loop = 0 ; counter_for_loop < 10 ; counter_for_loop = counter_for_loop + 1)
                 input_buffer[counter_for_loop] <= 0                                                             ;
         else    
-            if (s_axis_ready_o)
+            if (fxp_convert_done)
                 input_buffer[counter_data_for_max] <= fxp_32_input_data[31] ? ~{1'b0, fxp_32_input_data[29:23],
                                                       fxp_32_input_data[22:15]} + 1 : 
                                                       {1'b0, fxp_32_input_data[29:23], fxp_32_input_data[22:15]};
@@ -93,12 +96,13 @@ module downscale_block_16
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
-            begin    
+            begin
+                fxp_convert_done <= 0                                                                           ;    
                 s_axis_ready_o <= 0                                                                             ;
                 fxp_32_input_data <= 0                                                                          ;
             end
         else
-            if (s_axis_valid_i && ~s_axis_last_i)
+            if (s_axis_ready_o)
                 begin
                     fxp_32_input_data[31] <= s_axis_data_i[31]                                                  ;
                     if (s_axis_data_i[30:23] > 127)
@@ -109,10 +113,16 @@ module downscale_block_16
                                                   >> (127 - s_axis_data_i[30:23])                               ;
                     else
                         fxp_32_input_data[30:0] <= {7'b0,1'b1,s_axis_data_i[22:0]}                              ;
-                    s_axis_ready_o <= 1                                                                         ;
+                    fxp_convert_done <= 1                                                                       ;
                 end
-            if (s_axis_ready_o)
+                
+             if (fxp_convert_done)
+                fxp_convert_done <= 0                                                                           ;
+             if (s_axis_valid_i && ~s_axis_last_i_temp && ~s_axis_ready_o)
+                s_axis_ready_o <= 1                                                                             ;
+             if (s_axis_ready_o)
                 s_axis_ready_o <= 0                                                                             ;
+                
     end
     //handle counter for find max value
     always @(posedge clock_i) 
@@ -120,7 +130,7 @@ module downscale_block_16
         if (~reset_n_i)
             counter_data_for_max <= 0                                                                           ;
         else 
-            if (s_axis_ready_o && ~s_axis_last_i_temp)
+            if (fxp_convert_done)
                 counter_data_for_max <= counter_data_for_max + 1                                                ;
     end
     //find max value
@@ -203,7 +213,7 @@ module downscale_block_16
                 downscale_next_state = IDLE                                                                     ;
         endcase    
     end
-    
+    //subtractor fxp 1.7.8
     always @* 
     begin
         case (downscale_current_state)

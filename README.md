@@ -17,27 +17,8 @@ Figure 2: Softmax mathetical model
         + Transfroming the expression for removing the division operator
 ![alt text](illustrating%20images/transform_model.png)
 ### 4. Specification
-### 4.1. 32 Bit Version
-#### 4.1.1 Block Diagram
-![block_diagram_32](/illustrating%20images/32_bit/block_diagram_32.png)
-#### 4.1.2 Sub-Blocks
-- **Downscale block 32 bit:** 
-![downscale_block_32](illustrating%20images/32_bit/downscale_block_32.png)
-- **Exp 1 block 32 bit:**
-![exp_1_32](illustrating%20images/32_bit/exp_1_32.png)
-- **Adder block**
-![adder_block_32](illustrating%20images/32_bit/adder_block_32.png)
-- **Logarith nature block**
-![Logarith_block_32](illustrating%20images/32_bit/Logarith_block_32.png)
-- **Subtractor 2 block**
-![sub_2_block_32](illustrating%20images/32_bit/sub_2_block_32.png)
-- **Exp 2 - Ouput Block**
-![output_block_32](illustrating%20images/32_bit/output_block_32.png)
-
-#### 4.2. 16 Bit Version
-##### 4.2.1. Block Diagram
+- **Block Diagram**
 ![block_diagram_16](illustrating%20images/16_bit/block_diagram_16.png)
-##### 4.2.2 Sub_Blocks
 - **Downscale block**
 ![downscale_block_16](illustrating%20images/16_bit/downscale_block_16.png)
 - **Exp 1 block**

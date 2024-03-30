@@ -93,7 +93,7 @@ module ln_block_16
     end
 
     //LUT LN (1.man)
-    assign  lut_ln_man_input_wire = fp_data[9:2]                                                               ;
+    assign  lut_ln_man_input_wire = fp_data[9:2]                                                                ;
     assign  fp_data_valid_wire = fp_data_valid                                                                  ;
     lut_ln_16 lut_16(
         .clock_i(clock_i)                                                                                       ,

@@ -13,58 +13,137 @@ module exp_2_block_16
     input                               m_axis_ready_i                                                          ,
     output  reg                         m_axis_last_o                                                           ,
     output  reg                         m_axis_valid_o                                                          ,
-    output  reg     [data_size - 1:0]   m_axis_data_o
+    output  reg     [2*data_size - 1:0] m_axis_data_o
 );
     //----------------------------------------internal variable-------------------------------------------------
     integer                             i                                                                       ;
-    reg             [7:0]               counter_data_output                                                     ;
-    reg             [7:0]               m_axis_counter_data                                                     ;
+    reg             [7:0]               save_fxp_16_counter                                                     ;
+    reg             [7:0]               compute_and_save_fp_32_counter                                          ;
+    reg             [7:0]               m_axis_counter                                                          ;
     reg             [7:0]               number_of_data                                                          ;
-    reg             [data_size - 1:0]   LUT_EXP         [11:0]                                                  ;
+    reg             [data_size - 1:0]   LUT_EXP                [11:0]                                           ;
     wire            [data_size - 1:0]   exp_data_i_temp                                                         ;
     reg                                 exp_data_valid_o_temp                                                   ;
     reg             [4*data_size - 1:0] exp_data_o_temp                                                         ;
     reg             [2*data_size - 1:0] pre_exp_data_o_temp                                                     ;
-    reg             [data_size - 1:0]   output_buffer   [9:0]                                                   ;
+
+    reg                                 fxp_16_ready_to_compute                                                 ;
+    reg             [data_size - 1:0]   fxp_16_output_data_temp                                                 ;
+    reg             [data_size - 1:0]   fxp_16_output_buffer   [9:0]                                            ;
+    reg             [2*data_size - 1:0] fp_32_output_buffer    [9:0]                                            ;
+
+
+    reg                                 fp_32_valid                                                             ;
+    reg             [2*data_size - 1:0] fp_32_output                                                            ;
     
-    
-    always @(posedge clock_i)
-    begin
-        if (~reset_n_i)
-            for(i = 0 ; i < 10 ; i = i + 1)
-                output_buffer[i] <= 0                                                                           ;
-        else
-            if (exp_data_valid_o_temp)
-                output_buffer[counter_data_output] <= pre_exp_data_o_temp[31:16]                                ;
-    end
-    
-    always @(posedge clock_i)
-    begin
-        if (~reset_n_i)
-            counter_data_output <= 0                                                                            ;
-        else
-            if (exp_data_valid_o_temp)
-                counter_data_output <= counter_data_output + 1                                                  ;
-    end
-    
+
+    //------------------------------------------------get number of data----------------------------------------
     always @(posedge clock_i)
     begin
         if (~reset_n_i)
             number_of_data <= 0                                                                                 ;
         else
             if (exp_sub_2_done_i)
-                number_of_data <= counter_data_output                                                           ;
+                number_of_data <= save_fxp_16_counter                                                           ;
     end
-    
+
+    //-----------------------------------------------save output FXP_16-----------------------------------------
     always @(posedge clock_i)
     begin
         if (~reset_n_i)
-            m_axis_counter_data <= 0                                                                            ;
+            for(i = 0 ; i < 10 ; i = i + 1)
+                fxp_16_output_buffer[i] <= 0                                                                    ;
         else
-            if (m_axis_ready_i && m_axis_valid_o && m_axis_counter_data < number_of_data)
-                m_axis_counter_data <= m_axis_counter_data + 1                                                  ;
+            if (exp_data_valid_o_temp)
+                fxp_16_output_buffer[save_fxp_16_counter] <= pre_exp_data_o_temp[31:16]                         ;
     end
-    
+
+    always @(posedge clock_i)
+    begin
+        if (~reset_n_i)
+            save_fxp_16_counter <= 0                                                                            ;
+        else
+            if (exp_data_valid_o_temp)
+                save_fxp_16_counter <= save_fxp_16_counter + 1                                                  ;
+    end
+
+    //---------------------------------------------FXP_16 to FP_32 SP-------------------------------------------
+    always @(posedge clock_i) 
+    begin
+        if (~reset_n_i)
+            begin
+                fxp_16_ready_to_compute <= 0                                                                    ;
+                fxp_16_output_data_temp <= 0                                                                    ;
+                fp_32_valid <= 0                                                                                ;
+                fp_32_output <= {1'b0, 8'b01111110, 23'b0}                                                      ;
+            end
+        else
+            begin
+                if (compute_and_save_fp_32_counter < number_of_data)
+                begin
+                    if (~fxp_16_ready_to_compute && ~fp_32_valid && save_fxp_16_counter == number_of_data)
+                    begin
+                        fxp_16_ready_to_compute <= 1                                                            ;
+                        fxp_16_output_data_temp <= fxp_16_output_buffer[compute_and_save_fp_32_counter]         ;
+                    end
+
+                    if (~fp_32_valid && fxp_16_ready_to_compute)
+                        if (fxp_16_output_data_temp == 0)
+                            begin
+                                fp_32_valid <= 1                                                                 ;
+                                fp_32_valid <= 1                                                                 ;
+                                fxp_16_ready_to_compute <= 0                                                     ;
+                                fp_32_output <= 0                                                                ;
+                            end
+                        else if (fxp_16_output_data_temp[15])
+                            begin
+                                fp_32_valid <= 1                                                                 ;
+                                fxp_16_ready_to_compute <= 0                                                     ;
+                                fp_32_output[22:0] <= {fxp_16_output_data_temp[14:0], 8'b0}                      ; 
+                            end
+                        else
+                            begin
+                                fxp_16_output_data_temp <= fxp_16_output_data_temp << 1                          ;
+                                fp_32_output[30:23] <= fp_32_output[30:23] - 1                                   ;
+                            end
+                    if (fp_32_valid)
+                    begin
+                        fp_32_output[30:23] <= 8'b01111110                                                       ;
+                        fp_32_valid <= 0                                                                         ;
+                    end 
+                end
+            end
+    end
+
+    //--------------------------------------------Save output FP_32---------------------------------------------
+    always @(posedge clock_i)
+    begin
+        if (~reset_n_i)
+            compute_and_save_fp_32_counter <= 0                                                                 ;
+        else
+            if (fp_32_valid && compute_and_save_fp_32_counter < number_of_data)
+                compute_and_save_fp_32_counter <= compute_and_save_fp_32_counter + 1                            ;
+    end
+
+    always @(posedge clock_i)
+    begin
+        if (~reset_n_i)
+            for(i = 0 ; i < 10 ; i = i + 1)
+                fp_32_output_buffer[i] <= 0                                                                     ;
+        else
+            if (fp_32_valid)
+                fp_32_output_buffer[compute_and_save_fp_32_counter] <= fp_32_output                             ;
+    end
+
+    //------------------------------------------AXI4 STREAM TRANSACTION-----------------------------------------
+    always @(posedge clock_i) 
+    begin
+        if (~reset_n_i)
+            m_axis_counter <= 0                                                                                 ;
+        else
+            if (m_axis_valid_o && m_axis_ready_i && m_axis_counter < number_of_data)
+                m_axis_counter = m_axis_counter + 1                                                             ;
+    end
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
@@ -75,19 +154,22 @@ module exp_2_block_16
             end
         else
             begin
-                if (m_axis_counter_data < number_of_data)
-                    m_axis_valid_o <= 1                                                                         ;
-                else
+                if (compute_and_save_fp_32_counter == number_of_data && m_axis_counter < number_of_data)
+                    begin
+                        m_axis_valid_o <= 1                                                                     ;
+                        m_axis_data_o <= fp_32_output_buffer[m_axis_counter]                                    ;
+                    end
+                else if (m_axis_counter == number_of_data && m_axis_ready_i)
                     m_axis_valid_o = 0                                                                          ;
-                if (m_axis_counter_data < number_of_data && m_axis_valid_o)
-                    m_axis_data_o <= output_buffer[m_axis_counter_data]                                         ;
-                if (m_axis_counter_data == number_of_data - 1)
+                if (m_axis_counter == number_of_data - 1)
                     m_axis_last_o <= 1                                                                          ;
-                if (m_axis_last_o)
+                if (m_axis_last_o && m_axis_ready_i)
                     m_axis_last_o <= 0                                                                          ;
             end
     end
 
+
+    //-------------------------------------------LUT EXP--------------------------------------------------------
     assign exp_data_i_temp = ~exp_data_i + 1                                                                    ;
     always @(posedge clock_i) 
     begin
@@ -128,7 +210,7 @@ module exp_2_block_16
                 else
                 begin
                     exp_data_o_temp = exp_data_i_temp[11] ? (exp_data_i_temp[10] ? {LUT_EXP[11], 16'b0} * {LUT_EXP[10], 16'b0} : {LUT_EXP[11], 48'b0})
-                                : (exp_data_i_temp[10] ? {LUT_EXP[10], 48'b0} : 64'b0)                            ;
+                                : (exp_data_i_temp[10] ? {LUT_EXP[10], 48'b0} : 64'b0)                          ;
                     pre_exp_data_o_temp = exp_data_o_temp[63:32]                                                ;
                     exp_data_o_temp = pre_exp_data_o_temp ? (exp_data_i_temp[9] ? pre_exp_data_o_temp * {LUT_EXP[9], 16'b0} : {pre_exp_data_o_temp, 32'b0})
                                 : (exp_data_i_temp[9] ? {LUT_EXP[9], 48'b0} : 64'b0)                            ;
