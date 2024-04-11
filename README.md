@@ -15,20 +15,29 @@ Figure 2: Softmax mathetical model
     - Improving the aforementioned problems
         + Downscaling value of exp(zi) to exp(zi - zmax) with zmax is max value of vector input z
         + Transfroming the expression for removing the division operator
-![alt text](illustrating%20images/transform_model.png)
+![transfrom](illustrating%20images/transform_model.png)
 ### 4. Specification
-- **Block Diagram**
-![block_diagram_16](illustrating%20images/16_bit/block_diagram_16.png)
-- **Downscale block**
-![downscale_block_16](illustrating%20images/16_bit/downscale_block_16.png)
-- **Exp 1 block**
-![exp_1_16](illustrating%20images/16_bit/exp_1_16.png)
-- **Adder block**
-![adder_block_16](illustrating%20images/16_bit/adder_block_16.png)
-- **Logarith nature block**
-![Logarith_block_16](illustrating%20images/16_bit/Logarith_block_16.png)
-- **Subtractor 2 block**
-![sub_2_block_16](illustrating%20images/16_bit/sub_2_block_16.png)
-- **Exp 2 - Ouput Block**
-![output_block_16](illustrating%20images/16_bit/output_block_16.png)
-### 5. Simulation
+- **Block Diagram 16 bit**
+![block](illustrating%20images/16_bit/block.png)
+### 5. Synthesis and Simulation result
+#### 5.1 Synthesis
+![synthesis result](illustrating%20images/16_bit/synthesis.png)
+#### 5.2 Simulation
+![simulation result](illustrating%20images/16_bit/simulation.png)
+### 6. Package IP and Intergrated into SOC
+#### 6.1 Package IP
+![package_ip](illustrating%20images/16_bit/softmax_ip.png)
+#### 6.2 Intergrated into SOC
+![alt text](illustrating%20images/16_bit/SOC.png)
+### 7. Result
+#### 7.1 Input
+- Input in Simulation
+![alt text](illustrating%20images/16_bit/in_simulation.png)
+- Input in ILA tool
+![alt text](illustrating%20images/16_bit/in_ILA.png)
+#### 7.2 Output
+- Output in Simulation
+![alt text](illustrating%20images/16_bit/out_simulation.png)
+- Output in ILA tool
+![alt text](illustrating%20images/16_bit/out_ILA.png)
+###  8. Conclusion
