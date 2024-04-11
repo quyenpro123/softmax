@@ -1,3 +1,10 @@
+/*
+=====================================================================================
+=                                                                                   =
+=   Author: Hoang Van Quyen - UET - VNU                                             =
+=                                                                                   =
+=====================================================================================
+*/
 module exp_2_block_16 
 #(
     parameter                           data_size = 16
@@ -9,7 +16,7 @@ module exp_2_block_16
     input                               exp_data_valid_i                                                        ,
     input                               exp_sub_2_done_i                                                        ,
 
-    //Master AXI4 Stream 
+    //Master AXI4 Stream
     input                               m_axis_ready_i                                                          ,
     output  reg                         m_axis_last_o                                                           ,
     output  reg                         m_axis_valid_o                                                          ,
@@ -136,20 +143,14 @@ module exp_2_block_16
     end
 
     //------------------------------------------AXI4 STREAM TRANSACTION-----------------------------------------
-    always @(posedge clock_i) 
-    begin
-        if (~reset_n_i)
-            m_axis_counter <= 0                                                                                 ;
-        else
-            if (m_axis_valid_o && m_axis_ready_i && m_axis_counter < number_of_data)
-                m_axis_counter = m_axis_counter + 1                                                             ;
-    end
+    
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
             begin
-                m_axis_valid_o <= 0                                                                             ;
                 m_axis_last_o <= 0                                                                              ;
+                m_axis_counter <= 0                                                                             ;         
+                m_axis_valid_o <= 0                                                                             ;
                 m_axis_data_o <= 0                                                                              ;
             end
         else
@@ -157,12 +158,18 @@ module exp_2_block_16
                 if (compute_and_save_fp_32_counter == number_of_data && m_axis_counter < number_of_data)
                     begin
                         m_axis_valid_o <= 1                                                                     ;
-                        m_axis_data_o <= fp_32_output_buffer[m_axis_counter]                                    ;
+                        m_axis_data_o <= fp_32_output_buffer[m_axis_counter]                                          ;
+                        m_axis_counter <= m_axis_counter + 1                                                    ;
                     end
                 else if (m_axis_counter == number_of_data && m_axis_ready_i)
                     m_axis_valid_o = 0                                                                          ;
                 if (m_axis_counter == number_of_data - 1)
                     m_axis_last_o <= 1                                                                          ;
+                if (m_axis_ready_i && m_axis_valid_o && m_axis_counter < number_of_data)
+                    begin
+                        m_axis_data_o <= fp_32_output_buffer[m_axis_counter]                                          ;
+                        m_axis_counter <= m_axis_counter + 1                                                    ;
+                    end
                 if (m_axis_last_o && m_axis_ready_i)
                     m_axis_last_o <= 0                                                                          ;
             end

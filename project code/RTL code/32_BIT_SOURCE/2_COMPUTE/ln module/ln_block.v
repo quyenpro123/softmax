@@ -1,6 +1,13 @@
-module ln_block_16
+/*
+=====================================================================================
+=                                                                                   =
+=   Author: Hoang Van Quyen - UET - VNU                                             =
+=                                                                                   =
+=====================================================================================
+*/
+module ln_block
 #(
-    parameter                           data_size = 16
+    parameter                           data_size = 32
 )
 (
     input                               clock_i                                                                 ,
@@ -9,10 +16,10 @@ module ln_block_16
     input                               ln_data_valid_i                                                         ,
     
     output                              ln_data_valid_o                                                         ,
-    output          [data_size - 1:0]   ln_data_o
+    output          [data_size - 1:0]   ln_data_o                                                                 //2 integer, 30 fractional
 );
     reg                                 input_ready                                                             ;
-    reg             [data_size - 1:0]   fxp_data_i_temp                                                         ;
+    reg             [data_size - 1:0]   fxp_data_i_tem                                                          ;
     reg             [data_size - 1:0]   fp_data                                                                 ;
     reg                                 fp_data_valid                                                           ;
     
@@ -24,21 +31,22 @@ module ln_block_16
     reg                                 ln_data_valid_o_temp                                                    ;
 
     wire                                fp_data_valid_wire                                                      ;
-    wire            [data_size - 1:0]   lut_ln_man_wire                                                         ;//LUT LN 16 bit
-    wire            [data_size/2 - 1:0] lut_ln_man_input_wire                                                   ;
+    wire            [data_size - 1:0]   lut_ln_man_wire                                                         ;
+    wire            [data_size/4 - 1:0] lut_ln_man_input_wire                                                   ;
     wire                                lut_ln_man_valid_wire                                                   ;
 
 
     assign ln_data_o = ln_data_o_temp                                                                           ;
     assign ln_data_valid_o = ln_data_valid_o_temp                                                               ;
     
+
     always @(posedge clock_i)
     begin
         if (~reset_n_i)
             begin
                 fp_data_valid <= 0                                                                              ;
-                fp_data <= {1'b0, 5'b10010, 10'b0}                                                              ;
-                fxp_data_i_temp <= 0                                                                            ;
+                fp_data <= {1'b0, 8'b10000010, 23'b0}                                                           ;
+                fxp_data_i_tem <= 0                                                                             ;
                 input_ready <= 0                                                                                ;
             end
         else
@@ -46,21 +54,21 @@ module ln_block_16
             begin
                 if (~input_ready)
                 begin
-                    fxp_data_i_temp <= ln_data_i                                                                ;
+                    fxp_data_i_tem <= ln_data_i                                                                 ;
                     input_ready <= 1                                                                            ;
                 end
                 if (input_ready && ~fp_data_valid)
                 begin
-                    if (fxp_data_i_temp[data_size - 1])
+                    if (fxp_data_i_tem[31])
                         begin
                             fp_data_valid <= 1                                                                  ;
-                            fp_data[14:10] <= fp_data[14:10]                                                    ;
-                            fp_data[9:0] <= fxp_data_i_temp[14:5]                                               ;
+                            fp_data[30:23] <= fp_data[30:23]                                                    ;
+                            fp_data[22:0] <= fxp_data_i_tem[30:8]                                               ;
                         end
                     else
                         begin
-                            fxp_data_i_temp <= fxp_data_i_temp << 1                                             ;
-                            fp_data[14:10] <= fp_data[14:10] - 1                                                ;
+                            fxp_data_i_tem <= fxp_data_i_tem << 1                                               ;
+                            fp_data[30:23] <= fp_data[30:23] - 1                                                ;
                         end
                 end    
             end
@@ -78,24 +86,23 @@ module ln_block_16
             begin
                 if (fp_data_valid && ~ln2_exp_valid)
                     begin
-                        $display("%0d", fp_data[14:10])                                                         ;
-                        if (fp_data[14:10] == 8'b01111)
-                            ln2_exp <= 16'b0                                                                    ;
-                        else if (fp_data[14:10] == 8'b10000)
-                            ln2_exp <= 16'b0010_1100_0101_1100                                                  ;
-                        else if (fp_data[14:10] == 5'b10001)
-                            ln2_exp <= 16'b0101_1000_1011_1001                                                  ;
-                        else if (fp_data[14:10] == 5'b10010)
-                            ln2_exp <= 16'b1000_0101_0001_0101                                                  ;
+                        if (fp_data[30:23] == 8'b01111111)
+                            ln2_exp <= 32'b0                                                                    ;
+                        else if (fp_data[30:23] == 8'b10000000)
+                            ln2_exp <= 32'b0010_1100_0101_1100_1000_0101_1111_1101                              ;
+                        else if (fp_data[30:23] == 8'b10000001)
+                            ln2_exp <= 32'b0101_1000_1011_1001_0000_1011_1111_1011                              ;
+                        else if (fp_data[30:23] == 8'b10000010)
+                            ln2_exp <= 32'b1000_0101_0001_0101_1001_0001_1111_1001                              ;
                         ln2_exp_valid <= 1                                                                      ;
                     end
             end
     end
 
     //LUT LN (1.man)
-    assign  lut_ln_man_input_wire = fp_data[9:2]                                                                ;
+    assign  lut_ln_man_input_wire = fp_data[22:15]                                                              ;
     assign  fp_data_valid_wire = fp_data_valid                                                                  ;
-    lut_ln_16 lut_16(
+    lut_ln lut(
         .clock_i(clock_i)                                                                                       ,
         .reset_n_i(reset_n_i)                                                                                   ,
         .lut_ln_data_i(lut_ln_man_input_wire)                                                                   ,
@@ -118,7 +125,7 @@ module ln_block_16
             begin
                 if (ln2_exp_valid && lut_ln_man_valid_wire && ~ln_data_valid_o_temp)
                     begin
-                        ln_data_o_temp <= {2'b0, lut_ln_man_wire[15:2]} + ln2_exp                               ;//LUT LN 16 bits
+                        ln_data_o_temp <= {2'b0, lut_ln_man_wire[31:2]} + ln2_exp                               ;
                         ln_data_valid_o_temp <= 1                                                               ;
                     end
             end

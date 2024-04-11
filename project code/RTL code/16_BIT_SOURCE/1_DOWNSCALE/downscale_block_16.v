@@ -1,3 +1,10 @@
+/*
+=====================================================================================
+=                                                                                   =
+=   Author: Hoang Van Quyen - UET - VNU                                             =
+=                                                                                   =
+=====================================================================================
+*/
 module downscale_block_16 
 #(
     parameter                           data_size = 16                                                            //number of bits of one data
@@ -5,7 +12,7 @@ module downscale_block_16
 (
     input                               clock_i                                                                 , //clock source
     input                               reset_n_i                                                               , //reset active low
-
+    
     //slave axi4 stream interface
     input                               s_axis_valid_i                                                          ,
     input           [2*data_size - 1:0] s_axis_data_i                                                           , //data in: Z = {Z1, Z2, Z3, ... , Zn}
@@ -29,13 +36,13 @@ module downscale_block_16
     reg             [7:0]               counter_data_for_max                                                    ; //count number of input data was saved
     reg                                 s_axis_last_i_temp                                                      ;
     reg                                 fxp_convert_done                                                        ;
-
+        
     //----------------------------------declare internal variables for sub block--------------------------------
     reg                                 sub_done                                                                ;
     reg             [data_size - 1:0]   sub_result                                                              ;
     reg             [2*data_size - 1:0] sub_result_temp                                                         ;
     reg                                 sub_result_valid                                                        ;
-    reg             [7:0]               counter_data_for_sub                                                    ;
+    reg             [7:0]               counter_data_for_sub                                                    ;                    
 
     //-------------------------------------------FSM variables--------------------------------------------------
     localparam                          IDLE = 0                                                                ;
@@ -47,7 +54,7 @@ module downscale_block_16
     //----------------------------------------------------------------------------------------------------------
     assign downscale_number_of_data_o = number_of_data                                                          ;
     assign downscale_done_o = sub_done                                                                          ;
-
+    
     //update output
      always @(posedge clock_i) 
      begin
@@ -79,7 +86,7 @@ module downscale_block_16
         else
             s_axis_last_i_temp <= s_axis_last_i                                                                 ;
     end
-
+    
     //input stream: save fxp_32 (in form 16 bit: 1.7.8) into input buffer
     always @(posedge clock_i) 
     begin
@@ -170,7 +177,7 @@ module downscale_block_16
             if (s_axis_last_i_temp)
                 max_done <= 1                                                                                   ;
     end
-
+    
     //find number_of_data
     always @(posedge clock_i)
     begin
@@ -180,7 +187,7 @@ module downscale_block_16
             if (max_done)
                 number_of_data <= counter_data_for_max                                                          ;
     end
-
+    
     //----------------------------------------------------FSM SUBTRACTOR----------------------------------------
 
     always @(posedge clock_i) 

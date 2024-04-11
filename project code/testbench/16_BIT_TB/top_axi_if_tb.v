@@ -1,3 +1,10 @@
+/*
+=====================================================================================
+=                                                                                   =
+=   Author: Hoang Van Quyen - UET - VNU                                             =
+=                                                                                   =
+=====================================================================================
+*/
 module top_tb_16();
     localparam                          data_size = 16                                                          ;
     reg                                 axi_clock_i                                                             ;
@@ -19,6 +26,8 @@ module top_tb_16();
     integer j                                                                                                   ;
     integer i                                                                                                   ;
     reg             [2*data_size - 1:0] buffer  [9:0]                                                           ;
+    
+    localparam number = 5;
     softmax_top_16 #(data_size) softmax_top(
         .axi_clock_i(axi_clock_i)                                                                               ,
         .axi_reset_n_i(axi_reset_n_i)                                                                           ,
@@ -31,19 +40,15 @@ module top_tb_16();
         .m_axis_data_o(m_axis_data_o)                                                                           ,
         .m_axis_last_o(m_axis_last_o)
     );
-    always @(posedge axi_clock_i)
+   always @(posedge axi_clock_i)
         begin
-            if (~axi_reset_n_i)
-                buffer[0] = 32'b1100_0000_0101_0011_0001_0010_0110_1110                                         ;
-                buffer[1] = 32'b0011_1110_1000_1100_0100_1001_1011_1010                                         ;
-                buffer[2] = 32'b1100_0000_0001_0000_0001_0000_0110_0010                                         ;
-                buffer[3] = 32'b1011_1111_1100_1111_0011_1011_0110_0100                                         ;
-                buffer[4] = 32'b1100_0000_1000_0001_0000_1110_0101_0110                                         ;
-                buffer[5] = 32'b1100_0000_1000_0101_0100_0111_1010_1110                                         ;
-                buffer[6] = 32'b0100_0000_1001_1000_0100_1001_1011_1010                                         ;
-                buffer[7] = 32'b1100_0000_1001_1111_1101_1111_0011_1011                                         ;
-                buffer[8] = 32'b0011_1111_1100_1011_1010_0101_1110_0011                                         ;
-                buffer[9] = 32'b1100_0000_1000_0111_0011_1011_0110_0100                                         ;
+            if (~axi_reset_n_i) begin
+                buffer[0] = 32'b1011_1111_1110_0001_0100_0111_1010_1110                                            ;
+                buffer[1] = 32'b1100_0000_0001_1000_0010_0000_1100_0100                                            ;
+                buffer[2] = 32'b0100_0000_0101_0101_1000_0001_0000_0110                                            ;
+                buffer[3] = 32'b1100_0000_0100_1011_0111_0100_1011_1100                                            ;
+                buffer[4] = 32'b1011_1111_0101_1001_1101_1011_0010_0010                                            ;
+                end
         end
     initial 
     begin
@@ -80,45 +85,45 @@ module top_tb_16();
             end
         else
             begin
-                if (axi_reset_n_i && ~fisrt_data && i < 10 || fisrt_data && i != 10)
+                if (axi_reset_n_i && ~fisrt_data && i < number || fisrt_data && i != number)
                     s_axis_valid_i <= 1                                                                         ;
-                if (i == 10 && s_axis_ready_o)
+                if (i == number && s_axis_ready_o)
                 begin
                     s_axis_valid_i <= 0                                                                         ;
                     s_axis_last_i_temp <= 0                                                                     ;
                 end
-                if (axi_reset_n_i && ~fisrt_data && i < 10)
+                if (axi_reset_n_i && ~fisrt_data && i < number)
                 begin
                     fisrt_data <= 1                                                                             ;
                     s_axis_data_i <= buffer[0]                                                                  ;
                 end
-                else if (s_axis_ready_o && s_axis_valid_i && i < 10)
+                else if (s_axis_ready_o && s_axis_valid_i && i < number)
                     begin
                         i <= i + 1                                                                              ;
                         s_axis_data_i <= buffer[i]                                                              ;
                     end
-                if (i == 9 && s_axis_valid_i)
+                if (i == number - 1 && s_axis_valid_i)
                         s_axis_last_i_temp <= 1                                                                 ;
             end
     end
     
     always @(posedge axi_clock_i)
     begin
-        if (~axi_reset_n_i)
-        begin
-            m_axis_ready_i <= 0                                                                                 ;
-            j <= 0                                                                                              ;
-        end
-        else
-            begin
-                if (~m_axis_last_o && m_axis_valid_o && ~m_axis_ready_i || m_axis_last_o && m_axis_valid_o)
-                    begin
-                    m_axis_ready_i <= 1                                                                         ;
-                    j = j + 1                                                                                   ; 
-                    end
-                if (m_axis_ready_i)
-                    m_axis_ready_i <= 0                                                                         ;
-            end
+            m_axis_ready_i <= 1                                                                                 ;
+//        if (~axi_reset_n_i)
+//        begin
+//            m_axis_ready_i <= 0                                                                                 ;
+//            j <= 0                                                                                              ;
+//        end
+//        else
+//            begin
+//                if (~m_axis_last_o && m_axis_valid_o && ~m_axis_ready_i || m_axis_last_o && m_axis_valid_o)
+//                    begin
+//                    m_axis_ready_i <= 1                                                                         ;
+//                    j = j + 1                                                                                   ; 
+//                    end
+                
+//            end
     end
     always #5 axi_clock_i = ~axi_clock_i                                                                        ;
 endmodule
