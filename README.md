@@ -2,12 +2,12 @@
 ### 1. Softmax
     - Softmax is an activation function and is used in the last layer in DNN
 ![Softmax regression model as a neural network ](illustrating%20images/soft_max_neural.png)
-Figure 1: Softmax regression model as a neural network
+
 ### 2. Mathetical Model
     - Input of softmax function is real vector z = {z1...zC} with C is number of class
     - Output of softmax function is real(probability) vector a = {a1...aC} and sum of vector a is equal to 1
 ![Mathetical Model of Softmax function](illustrating%20images/softmax_mathetical_model.png)
-Figure 2: Softmax mathetical model
+
 ### 3. Hardware Implementation Approach
     - The simplest way is to directly implement the initial softmax expression. But it has some problems.
         + Firstly: Since zi is a real number, it can lead to the value of exp(zi) becoming too large, thus consuming more resouces to store this value
