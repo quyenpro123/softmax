@@ -21,7 +21,6 @@ module downscale_block_16
     
     output          [7:0]               downscale_number_of_data_o                                              ,
     output  reg                         downscale_data_valid_o                                                  ,
-    output                              downscale_done_o                                                        ,
     output  reg     [data_size - 1:0]   downscale_data_o                                                              //Zi - Zmax
 );
     integer                             number_of_data                                                          ;
@@ -53,7 +52,6 @@ module downscale_block_16
     reg             [1:0]               downscale_next_state                                                    ;
     //----------------------------------------------------------------------------------------------------------
     assign downscale_number_of_data_o = number_of_data                                                          ;
-    assign downscale_done_o = sub_done                                                                          ;
     
     //update output
      always @(posedge clock_i) 

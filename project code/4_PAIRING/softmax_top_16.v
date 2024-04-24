@@ -28,7 +28,6 @@ module softmax_top_16
     //internal downscale
     wire                                downscale_data_valid_o                                                  ;
     wire            [data_size - 1:0]   downscale_data_o                                                        ;
-    wire                                downscale_done_o                                                        ;
     wire            [7:0]               downscale_number_of_data_o                                              ;                    
 
     wire            [data_size - 1:0]   exp_1_data_o                                                            ;
@@ -56,7 +55,6 @@ module softmax_top_16
         .s_axis_ready_o(s_axis_ready_o)                                                                         ,
         //output
         .downscale_data_valid_o(downscale_data_valid_o)                                                         ,
-        .downscale_done_o(downscale_done_o)                                                                     ,
         .downscale_number_of_data_o(downscale_number_of_data_o)                                                 ,
         .downscale_data_o(downscale_data_o)
     );
@@ -67,7 +65,6 @@ module softmax_top_16
         .reset_n_i(axi_reset_n_i)                                                                               ,
         .exp_data_i(downscale_data_o)                                                                           ,
         .exp_data_valid_i(downscale_data_valid_o)                                                               ,
-        .exp_downscale_done_i(downscale_done_o)                                                                 ,
         //output
         .exp_done_o(exp_1_done_signal_o)                                                                        ,
         .exp_data_valid_o(exp_1_data_valid_o)                                                                   ,
