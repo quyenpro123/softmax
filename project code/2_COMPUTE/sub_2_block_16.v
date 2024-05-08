@@ -64,7 +64,7 @@ module sub_2_block_16
 
     end
 
-    //handle coutner data input
+    //handle counter data input
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
@@ -77,7 +77,7 @@ module sub_2_block_16
     
 
 
-    //catch data from ln block
+    //capture data from ln block
     always @(posedge clock_i) 
     begin
         if (~reset_n_i)
