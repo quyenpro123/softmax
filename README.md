@@ -19,9 +19,11 @@
 ### 4. Specification
 - **Block Diagram 16 bit**
 ![block](illustrating%20images/16_bit/block.png)
-### 5. Synthesis and Simulation result
-#### 5.1 Synthesis
-![synthesis result](illustrating%20images/16_bit/synthesis.png)
+### 5. Implement and Simulation result
+#### 5.1 Implement
+-  Implement report (constraint clock with 14ns cycle).
+![hardware resouce](illustrating%20images/hardware_resource.png)
+![timing](illustrating%20images/timing.png)
 #### 5.2 Simulation
 ![simulation result](illustrating%20images/16_bit/simulation.png)
 ### 6. Package IP and Intergrated into SOC
